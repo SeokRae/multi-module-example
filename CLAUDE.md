@@ -3,29 +3,43 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Status
-This is currently an empty project template set up for a multi-module Java example. The project structure indicates it's intended to be a Maven-based multi-module project.
+This is a fully-developed multi-module Gradle Spring Boot project with comprehensive documentation and MCP Git integration for AI-powered development.
 
 ## Current Structure
-- IntelliJ IDEA project with basic configuration
-- Git repository initialized
-- No source code, build files, or documentation yet implemented
+- Multi-module Gradle Spring Boot project
+- IntelliJ IDEA project configuration
+- Comprehensive documentation in `docs/` directory
+- MCP Git integration for AI-powered development
+- Common libraries, domain models, infrastructure, and applications
 
-## Expected Development Setup
-Based on the project name and IntelliJ configuration, this will likely become a Maven multi-module project. When developed, typical commands would include:
+## Development Setup
+This is a Gradle-based multi-module project. Common commands:
 
-- Build: `mvn clean compile`
-- Test: `mvn test`
-- Package: `mvn clean package`
-- Install: `mvn clean install`
+- Build: `./gradlew build`
+- Test: `./gradlew test`
+- Run user API: `./gradlew :application:user-api:bootRun`
+- Run batch app: `./gradlew :application:batch-app:bootRun`
+
+## MCP Git Integration
+The project includes Model Context Protocol (MCP) Git integration:
+
+- Run `./setup-mcp.sh` to set up MCP Git server
+- Configuration files are in `.claude/mcp.json` and `.vscode/mcp.json`
+- Provides AI assistants with Git repository access and tools
+- See `docs/11-MCP_GIT_INTEGRATION.md` for detailed setup guide
 
 ## Architecture Notes
-This appears to be set up as a learning/example project for demonstrating multi-module Maven project structure. Once developed, it would typically contain:
+This is a learning/example project demonstrating multi-module Gradle Spring Boot architecture:
 
-- Parent POM defining module structure and dependencies
-- Multiple child modules with their own POMs
-- Shared dependencies and build configuration at parent level
+- Parent build.gradle with shared configuration and dependency management
+- Common modules: shared utilities, core business logic, web components
+- Domain modules: business entities and services (User, Order)
+- Infrastructure modules: data access and caching
+- Application modules: user-api (REST API), batch-app (Spring Batch)
 
 ## Development Notes
-- Project is currently in template/empty state
-- When adding modules, follow Maven multi-module conventions
-- IntelliJ IDEA project files are configured for Java development
+- Project uses Gradle with multi-module structure
+- Spring Boot 3.2.2 with Java 17
+- Comprehensive documentation in docs/ directory
+- MCP integration for AI-assisted development
+- Follow modular architecture patterns defined in docs/02-ARCHITECTURE.md

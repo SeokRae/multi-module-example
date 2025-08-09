@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "git": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "./mcp-servers/src/git",
+        "run",
+        "mcp-server-git",
+        "--repository",
+        "."
+      ],
+      "env": {}
+    }
+  }
+}

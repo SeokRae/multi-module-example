@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "git": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "mcp-servers/src/git",
+        "run",
+        "mcp-server-git",
+        "--repository",
+        "."
+      ],
+      "env": {
+        "PATH": "${PATH}:${HOME}/.local/bin"
+      }
+    }
+  }
+}

@@ -12,6 +12,7 @@
 | **👨‍💻 백엔드 개발자** | 02 → 05 → 06 → 09 | 아키텍처 이해와 개발 가이드 |
 | **🏗️ 아키텍트** | 02 → 08 → 09 → 10 | 시스템 설계와 의존성 관리 |
 | **🔧 데브옵스 엔지니어** | 03 → 07 → 04 | 빌드, 배포, 운영 |
+| **🤖 AI 도구 사용자** | 01 → 11 → 03 → 04 | AI 통합 개발 환경 설정 |
 
 ## 📋 순서별 문서 목록
 
@@ -38,6 +39,11 @@
 | **8️⃣** | [08-DEPENDENCY_ARCHITECTURE.md](08-DEPENDENCY_ARCHITECTURE.md) | 🔗 의존성 구조 및 관리 전략 | 아키텍트, 개발자 | ⭐⭐⭐⭐ |
 | **9️⃣** | [09-MODULE_DEPENDENCY_OPTIMIZATION.md](09-MODULE_DEPENDENCY_OPTIMIZATION.md) | ⚡ 모듈별 Spring 의존성 최적화 | 개발자 | ⭐⭐⭐ |
 | **🔟** | [10-DEPENDENCY_OPTIMIZATION_SUMMARY.md](10-DEPENDENCY_OPTIMIZATION_SUMMARY.md) | 📊 의존성 최적화 결과 요약 | 아키텍트, 리드 | ⭐⭐⭐ |
+
+### 🤖 **4단계: AI 및 도구 통합 (11)**
+| 순서 | 문서 | 설명 | 대상 | 중요도 |
+|------|------|------|------|-------|
+| **1️⃣1️⃣** | [11-MCP_GIT_INTEGRATION.md](11-MCP_GIT_INTEGRATION.md) | 🤖 MCP Git 통합 가이드 및 AI 도구 연동 | 개발자, AI 사용자 | ⭐⭐⭐ |
 
 ### 📋 **참고 자료**
 | 구분 | 문서 | 설명 | 대상 | 중요도 |
