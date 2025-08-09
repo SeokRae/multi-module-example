@@ -1,0 +1,29 @@
+dependencies {
+    api project(':common:common-core')
+    implementation project(':domain:user-domain')
+    implementation project(':domain:order-domain')
+    
+    // JPA & Database
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.data:spring-data-jpa'
+    
+    // Query DSL (타입 안전한 쿼리) - 일단 제외하고 기본 빌드 성공 후 추가
+    // implementation 'com.querydsl:querydsl-jpa'
+    // annotationProcessor 'com.querydsl:querydsl-apt'
+    
+    // Database drivers
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+    
+    // Connection pool
+    implementation 'com.zaxxer:HikariCP'
+    
+    // Database migration
+    implementation 'org.flywaydb:flyway-core'
+    
+    // JSON column support (PostgreSQL JSON 컬럼 지원)
+    implementation 'com.vladmihalcea:hibernate-types-60'
+    
+    // Audit (엔티티 변경 이력)
+    compileOnly 'org.springframework.data:spring-data-envers'
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.30/f195ee86e6c896ea47a1d39defbe20eb59cd149d/lombok-1.18.30.jar" />
+        </processorPath>
+        <module name="multi-module-example.domain.user-domain.main" />
+        <module name="multi-module-example.application.batch-app.main" />
+        <module name="multi-module-example.common.common-cache.main" />
+        <module name="multi-module-example.common.common-core.main" />
+        <module name="multi-module-example.domain.order-domain.main" />
+        <module name="multi-module-example.application.user-api.main" />
+        <module name="multi-module-example.common.common-web.main" />
+        <module name="multi-module-example.common.main" />
+        <module name="multi-module-example.infrastructure.data-access.main" />
+        <module name="multi-module-example.infrastructure.main" />
+        <module name="multi-module-example.application.main" />
+        <module name="multi-module-example.infrastructure.cache-infrastructure.main" />
+        <module name="multi-module-example.domain.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="multi-module-example.application.batch-app" options="-parameters" />
+      <module name="multi-module-example.application.batch-app.main" options="-parameters" />
+      <module name="multi-module-example.application.batch-app.test" options="-parameters" />
+      <module name="multi-module-example.application.user-api" options="-parameters" />
+      <module name="multi-module-example.application.user-api.main" options="-parameters" />
+      <module name="multi-module-example.application.user-api.test" options="-parameters" />
+    </option>
+  </component>
+</project>

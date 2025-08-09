@@ -1,0 +1,15 @@
+dependencies {
+    api project(':common:common-core')
+    
+    // Caching support
+    api 'org.springframework:spring-context-support'
+    api 'org.springframework.boot:spring-boot-starter-cache'
+    
+    // Cache providers (선택적으로 사용)
+    compileOnly 'org.springframework.boot:spring-boot-starter-data-redis'
+    compileOnly 'com.github.ben-manes.caffeine:caffeine'
+    compileOnly 'org.ehcache:ehcache'
+    
+    // Cache serialization
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}

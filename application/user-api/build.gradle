@@ -1,0 +1,39 @@
+dependencies {
+    // Common modules
+    implementation project(':common:common-web')
+    
+    // Domain modules
+    implementation project(':domain:user-domain')
+    implementation project(':domain:order-domain')
+    
+    // Infrastructure modules
+    implementation project(':infrastructure:data-access')
+    
+    // Web stack
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    
+    // API documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
+    
+    // Rate limiting (API 호출 제한)
+    implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core'
+    
+    // Database
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    
+    // Monitoring & Observability
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    
+    // Development tools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+}

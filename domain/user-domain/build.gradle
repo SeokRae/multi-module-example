@@ -1,0 +1,21 @@
+dependencies {
+    api project(':common:common-core')
+    
+    // Spring Context (DI container)
+    api 'org.springframework:spring-context'
+    
+    // Transaction management (비즈니스 서비스에서 @Transactional 사용)
+    api 'org.springframework:spring-tx'
+    
+    // Event publishing (도메인 이벤트)
+    implementation 'org.springframework:spring-context'
+    
+    // Validation
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Money handling (정확한 금전 계산)
+    implementation 'org.javamoney:moneta'
+    
+    // Domain events support (선택적)
+    compileOnly 'org.springframework.data:spring-data-commons'
+}

@@ -1,0 +1,20 @@
+dependencies {
+    api project(':common:common-core')
+    
+    // Web essentials
+    api 'org.springframework:spring-web'
+    api 'org.springframework:spring-webmvc'
+    
+    // HTTP client for external API calls (기본 제공되는 것 사용)
+    compileOnly 'org.springframework:spring-webflux'
+    
+    // Security (선택적 - 웹 보안 관련 유틸리티)
+    compileOnly 'org.springframework.security:spring-security-web'
+    compileOnly 'org.springframework.security:spring-security-config'
+    
+    // OpenAPI/Swagger (선택적)
+    compileOnly 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
+    
+    // Servlet API
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
+}

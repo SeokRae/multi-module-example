@@ -1,0 +1,15 @@
+dependencies {
+    api project(':common:common-core')
+    api project(':common:common-cache')
+    
+    // Redis support
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.redisson:redisson-spring-boot-starter'
+    
+    // Local cache
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    
+    // Cache serialization
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}

@@ -1,0 +1,18 @@
+rootProject.name = 'multi-module-example'
+
+// Common modules
+include 'common:common-core'
+include 'common:common-web'
+include 'common:common-cache'
+
+// Domain modules  
+include 'domain:user-domain'
+include 'domain:order-domain'
+
+// Infrastructure modules
+include 'infrastructure:data-access'
+include 'infrastructure:cache-infrastructure'
+
+// Application modules
+include 'application:user-api'
+include 'application:batch-app'

@@ -1,0 +1,26 @@
+dependencies {
+    // Core Spring Framework (최소한의 Spring 컨텍스트)
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-beans'
+    
+    // Validation
+    api 'jakarta.validation:jakarta.validation-api'
+    implementation 'org.hibernate.validator:hibernate-validator'
+    
+    // Utilities
+    api 'org.apache.commons:commons-lang3'
+    api 'com.google.guava:guava'
+    
+    // JSON Processing
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // Logging
+    api 'org.slf4j:slf4j-api'
+    
+    // Time handling
+    implementation 'org.threeten:threeten-extra'
+    
+    // Optional: Configuration Properties
+    compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+}

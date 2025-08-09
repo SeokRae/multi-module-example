@@ -1,0 +1,37 @@
+dependencies {
+    // Common modules
+    implementation project(':common:common-core')
+    
+    // Domain modules
+    implementation project(':domain:user-domain')
+    implementation project(':domain:order-domain')
+    
+    // Infrastructure modules
+    implementation project(':infrastructure:data-access')
+    
+    // Batch processing
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    
+    // Advanced scheduling
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    
+    // File processing
+    implementation 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.apache.poi:poi-ooxml'  // Excel files
+    implementation 'com.opencsv:opencsv'       // CSV files
+    
+    // Email notifications
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    
+    // Database
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    
+    // Monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+}

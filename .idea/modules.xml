@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/application/batch-app/multi-module-example.application.batch-app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/application/batch-app/multi-module-example.application.batch-app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/application/user-api/multi-module-example.application.user-api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/application/user-api/multi-module-example.application.user-api.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/common-core/multi-module-example.common.common-core.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/common-core/multi-module-example.common.common-core.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/common-web/multi-module-example.common.common-web.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/common-web/multi-module-example.common.common-web.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain/order-domain/multi-module-example.domain.order-domain.main.iml" filepath="$PROJECT_DIR$/.idea/modules/domain/order-domain/multi-module-example.domain.order-domain.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain/user-domain/multi-module-example.domain.user-domain.main.iml" filepath="$PROJECT_DIR$/.idea/modules/domain/user-domain/multi-module-example.domain.user-domain.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/infrastructure/data-access/multi-module-example.infrastructure.data-access.main.iml" filepath="$PROJECT_DIR$/.idea/modules/infrastructure/data-access/multi-module-example.infrastructure.data-access.main.iml" />
+    </modules>
+  </component>
+</project>
