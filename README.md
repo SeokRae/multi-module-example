@@ -11,6 +11,7 @@ Spring Boot 기반의 멀티모듈 Gradle 프로젝트입니다. 도메인 주�
 - [빌드 및 실행](#빌드-및-실행)
 - [API 문서](#api-문서)
 - [개발 가이드](#개발-가이드)
+- [AI 기반 Git 자동화 (MCP Git)](#ai-기반-git-자동화-mcp-git)
 
 ## 🎯 프로젝트 개요
 
@@ -373,8 +374,49 @@ dependencies {
 2. **통합 테스트**: API 레벨 end-to-end 테스트
 3. **테스트 데이터**: H2 인메모리 DB 활용
 
+## 🤖 AI 기반 Git 자동화 (MCP Git)
+
+이 프로젝트는 **Model Context Protocol (MCP) Git 통합**을 통해 AI 기반 Git 자동화 기능을 제공합니다.
+
+### ⚡ 빠른 시작
+
+1. **MCP Git 서버 설정**
+   ```bash
+   ./setup-mcp.sh
+   ```
+
+2. **AI와 대화하며 Git 작업**
+   ```
+   "현재 git 상태 보여줘"
+   "새 브랜치 feature/payment 만들어줘"
+   "변경사항을 '결제 API 추가' 메시지로 커밋해줘"
+   "main 브랜치와 차이점 분석해줘"
+   ```
+
+### 🎯 주요 기능
+
+- **13가지 Git 도구**: status, log, branch, add, commit, reset, diff, checkout 등
+- **자연스러운 대화**: 복잡한 Git 명령어 대신 일상 언어로 Git 조작
+- **지능적 분석**: 변경사항 분석, 브랜치 비교, 커밋 히스토리 요약
+- **워크플로우 자동화**: 개발 시작부터 배포까지 AI가 도움
+
+### 📚 상세 가이드
+
+- **설치 및 설정**: [docs/11-MCP_GIT_INTEGRATION.md](docs/11-MCP_GIT_INTEGRATION.md)
+- **실사용 시나리오**: [docs/12-MCP_USAGE_EXAMPLES.md](docs/12-MCP_USAGE_EXAMPLES.md)
+- **전체 문서 인덱스**: [docs/00-INDEX.md](docs/00-INDEX.md)
+
+### 🛠️ 지원 환경
+
+- **Claude Code**: 자동 감지 및 연동
+- **VS Code**: MCP 확장을 통한 연동
+- **Claude Desktop**: 설정 파일 복사로 연동
+
+---
+
 ## 🔧 확장 계획
 
+- [x] **MCP Git 통합**: AI 기반 Git 자동화 ✅
 - [ ] Spring Security 인증/인가 추가
 - [ ] Redis 캐시 레이어 추가  
 - [ ] MySQL/PostgreSQL 데이터베이스 연동
@@ -387,4 +429,4 @@ dependencies {
 
 ## 📞 문의사항
 
-프로젝트 관련 문의사항이 있으시면 Issues를 통해 남겨주시기 바랍니다.
+프로젝트 관련 문의사항이나 MCP Git 사용법에 대한 질문이 있으시면 Issues를 통해 남겨주시기 바랍니다.
