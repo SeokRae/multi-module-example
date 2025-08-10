@@ -13,9 +13,11 @@
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/common/common-cache" />
             <option value="$PROJECT_DIR$/common/common-core" />
+            <option value="$PROJECT_DIR$/common/common-security" />
             <option value="$PROJECT_DIR$/common/common-web" />
             <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/domain/order-domain" />
+            <option value="$PROJECT_DIR$/domain/product-domain" />
             <option value="$PROJECT_DIR$/domain/user-domain" />
             <option value="$PROJECT_DIR$/infrastructure" />
             <option value="$PROJECT_DIR$/infrastructure/cache-infrastructure" />

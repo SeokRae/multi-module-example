@@ -17,9 +17,11 @@
         <module name="multi-module-example.common.main" />
         <module name="multi-module-example.infrastructure.data-access.main" />
         <module name="multi-module-example.infrastructure.main" />
+        <module name="multi-module-example.domain.product-domain.main" />
         <module name="multi-module-example.application.main" />
         <module name="multi-module-example.infrastructure.cache-infrastructure.main" />
         <module name="multi-module-example.domain.main" />
+        <module name="multi-module-example.common.common-security.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />

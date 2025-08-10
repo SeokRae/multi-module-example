@@ -1,59 +1,160 @@
-# Dependabot 설정 - 자동 의존성 업데이트
+# Dependabot configuration for multi-module Spring Boot project
+# See https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
 version: 2
+
 updates:
-  # Gradle 의존성 업데이트
+  # Gradle dependencies - Root project
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-      timezone: "Asia/Seoul"
+      timezone: "UTC"
     open-pull-requests-limit: 5
     reviewers:
-      - "SeokRae"
+      - "@sr"  # Replace with actual reviewers
     assignees:
-      - "SeokRae"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
+      - "@sr"  # Replace with actual assignees
     labels:
       - "dependencies"
-      - "java"
+      - "gradle"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    # Group Spring Boot related updates
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+          - "org.springframework:*"
+          - "org.springframework.security:*"
+          - "org.springframework.batch:*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group QueryDSL updates
+      querydsl:
+        patterns:
+          - "com.querydsl:*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group JWT related updates  
+      jwt-security:
+        patterns:
+          - "io.jsonwebtoken:*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group Redis/Redisson updates
+      redis-cache:
+        patterns:
+          - "org.redisson:*"
+          - "org.springframework.boot:spring-boot-starter-data-redis*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group utility libraries
+      utilities:
+        patterns:
+          - "com.google.guava:*"
+          - "org.threeten:*"
+          - "org.javamoney:*"
+          - "com.github.vladimir-bukhtoyarov:*"
+          - "com.opencsv:*"
+          - "org.apache.poi:*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Version update strategies
+    versioning-strategy: auto
+    
+    # Ignore specific dependencies that require manual updates
+    ignore:
+      # Ignore major version updates for Spring Boot (require manual planning)
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+      
+      # Ignore Hibernate Types (deprecated in newer Spring Boot versions)
+      - dependency-name: "com.vladmihalcea:hibernate-types-60"
+        update-types: ["version-update:semver-major"]
+      
+      # Ignore Java major version updates
+      - dependency-name: "java"
+        update-types: ["version-update:semver-major"]
 
-  # GitHub Actions 워크플로우 업데이트
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:30"
-      timezone: "Asia/Seoul"
+      interval: "monthly"
+      day: "first-monday"
+      time: "09:00"
+      timezone: "UTC"
     open-pull-requests-limit: 3
     reviewers:
-      - "SeokRae"
-    assignees:
-      - "SeokRae"
+      - "@sr"  # Replace with actual reviewers
+    labels:
+      - "dependencies" 
+      - "github-actions"
     commit-message:
       prefix: "ci"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "github-actions"
 
-  # Docker 이미지 업데이트 (향후 사용)
-  - package-ecosystem: "docker"
-    directory: "/"
+  # MCP servers (Node.js dependencies)
+  - package-ecosystem: "npm"
+    directory: "/mcp-servers"
     schedule:
       interval: "weekly"
       day: "tuesday"
-      time: "09:00"
-      timezone: "Asia/Seoul"
-    open-pull-requests-limit: 2
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
     reviewers:
-      - "SeokRae"
-    commit-message:
-      prefix: "chore(docker)"
+      - "@sr"  # Replace with actual reviewers
     labels:
       - "dependencies"
-      - "docker"
+      - "mcp"
+      - "nodejs"
+    commit-message:
+      prefix: "mcp"
+      include: "scope"
+    groups:
+      # Group TypeScript/Node.js development dependencies
+      typescript-dev:
+        patterns:
+          - "@types/*"
+          - "typescript"
+          - "ts-node"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Python dependencies (for MCP Git server)
+  - package-ecosystem: "pip"
+    directories:
+      - "/mcp-servers/src/git"
+      - "/mcp-servers/src/fetch"
+      - "/mcp-servers/src/time"
+    schedule:
+      interval: "weekly"
+      day: "wednesday" 
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@sr"  # Replace with actual reviewers
+    labels:
+      - "dependencies"
+      - "mcp"
+      - "python"
+    commit-message:
+      prefix: "mcp"
+      include: "scope"

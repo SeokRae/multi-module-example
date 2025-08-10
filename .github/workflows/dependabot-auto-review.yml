@@ -1,0 +1,305 @@
+name: Dependabot Auto Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        type: string
+
+jobs:
+  auto-review:
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      issues: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+          
+      - name: Make scripts executable
+        run: |
+          chmod +x ./scripts/dependabot-pr-analyzer.sh
+          chmod +x ./scripts/auto-review-dependabot-pr.sh
+          chmod +x ./scripts/build-diagnostics.sh
+          
+      - name: Get PR information
+        id: pr-info
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          else
+            PR_NUMBER="${{ github.event.number }}"
+          fi
+          
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          
+          # Get PR details
+          PR_TITLE=$(gh pr view ${PR_NUMBER} --json title -q '.title' || echo "")
+          PR_AUTHOR=$(gh pr view ${PR_NUMBER} --json author -q '.author.login' || echo "")
+          
+          echo "pr_title=${PR_TITLE}" >> $GITHUB_OUTPUT
+          echo "pr_author=${PR_AUTHOR}" >> $GITHUB_OUTPUT
+          
+          # Determine if this is a Dependabot PR
+          if [[ "$PR_AUTHOR" == "app/dependabot" ]] || [[ "$PR_TITLE" == *"Bump"* ]]; then
+            echo "is_dependabot=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_dependabot=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Skip non-Dependabot PRs
+        if: steps.pr-info.outputs.is_dependabot != 'true'
+        run: |
+          echo "This is not a Dependabot PR. Skipping automated review."
+          echo "PR Author: ${{ steps.pr-info.outputs.pr_author }}"
+          echo "PR Title: ${{ steps.pr-info.outputs.pr_title }}"
+          
+      - name: Checkout PR branch
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        run: |
+          gh pr checkout ${{ steps.pr-info.outputs.pr_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Run dependency analysis
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        id: dep-analysis
+        run: |
+          echo "Running dependency analysis..."
+          ./scripts/dependabot-pr-analyzer.sh --analyze-deps
+          
+          # Check if analysis directory was created
+          if [[ -d ".dependabot-analysis" ]]; then
+            echo "analysis_completed=true" >> $GITHUB_OUTPUT
+          else
+            echo "analysis_completed=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Run build test
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        id: build-test
+        continue-on-error: true
+        run: |
+          echo "Running build test..."
+          
+          # Run clean build
+          if ./gradlew clean build --no-daemon --stacktrace; then
+            echo "build_status=success" >> $GITHUB_OUTPUT
+            echo "Build completed successfully"
+          else
+            echo "build_status=failure" >> $GITHUB_OUTPUT
+            echo "Build failed"
+            
+            # Create error summary
+            mkdir -p build-reports
+            echo "Build failed at $(date)" > build-reports/build-failure-summary.txt
+          fi
+          
+      - name: Run test suite
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        id: test-suite
+        continue-on-error: true
+        run: |
+          echo "Running test suite..."
+          
+          if ./gradlew test --no-daemon --continue; then
+            echo "test_status=success" >> $GITHUB_OUTPUT
+            echo "Tests completed successfully"
+          else
+            echo "test_status=failure" >> $GITHUB_OUTPUT
+            echo "Tests failed"
+          fi
+          
+      - name: Analyze version changes
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        id: version-analysis
+        run: |
+          PR_TITLE="${{ steps.pr-info.outputs.pr_title }}"
+          
+          # Extract version information
+          if echo "$PR_TITLE" | grep -qE 'from.*\.[0-9]+.*to.*\.[0-9]+$'; then
+            echo "update_type=patch" >> $GITHUB_OUTPUT
+            echo "risk_level=LOW" >> $GITHUB_OUTPUT
+          elif echo "$PR_TITLE" | grep -qE 'from.*\.[0-9]+\..*to.*\.[0-9]+\.'; then
+            echo "update_type=minor" >> $GITHUB_OUTPUT
+            echo "risk_level=MEDIUM" >> $GITHUB_OUTPUT
+          else
+            echo "update_type=major" >> $GITHUB_OUTPUT
+            echo "risk_level=HIGH" >> $GITHUB_OUTPUT
+          fi
+          
+          # Extract dependency name
+          DEPENDENCY=$(echo "$PR_TITLE" | sed -n 's/.*Bump \([^ ]*\).*/\1/p' || echo "unknown")
+          echo "dependency_name=${DEPENDENCY}" >> $GITHUB_OUTPUT
+          
+          # Extract version change
+          VERSION_CHANGE=$(echo "$PR_TITLE" | grep -oE 'from [0-9]+\.[0-9]+\.[0-9]+.*to [0-9]+\.[0-9]+\.[0-9]+.*' || echo "Version info not found")
+          echo "version_change=${VERSION_CHANGE}" >> $GITHUB_OUTPUT
+          
+      - name: Generate review analysis
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        id: review-analysis
+        run: |
+          BUILD_STATUS="${{ steps.build-test.outputs.build_status }}"
+          TEST_STATUS="${{ steps.test-suite.outputs.test_status }}"
+          RISK_LEVEL="${{ steps.version-analysis.outputs.risk_level }}"
+          UPDATE_TYPE="${{ steps.version-analysis.outputs.update_type }}"
+          
+          # Determine review recommendation
+          if [[ "$BUILD_STATUS" == "success" && "$TEST_STATUS" == "success" && "$RISK_LEVEL" == "LOW" ]]; then
+            echo "recommendation=APPROVE" >> $GITHUB_OUTPUT
+            echo "auto_merge=true" >> $GITHUB_OUTPUT
+          elif [[ "$BUILD_STATUS" == "success" && "$TEST_STATUS" == "success" ]]; then
+            echo "recommendation=REVIEW_REQUIRED" >> $GITHUB_OUTPUT
+            echo "auto_merge=false" >> $GITHUB_OUTPUT
+          else
+            echo "recommendation=REQUEST_CHANGES" >> $GITHUB_OUTPUT
+            echo "auto_merge=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create review comment
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        run: |
+          cat > review-comment.md << 'EOF'
+          ## 🤖 Automated Dependabot Review
+          
+          **PR**: ${{ steps.pr-info.outputs.pr_title }}  
+          **Dependency**: ${{ steps.version-analysis.outputs.dependency_name }}  
+          **Update Type**: ${{ steps.version-analysis.outputs.update_type }}  
+          **Risk Level**: ${{ steps.version-analysis.outputs.risk_level }}  
+          **Version Change**: ${{ steps.version-analysis.outputs.version_change }}  
+          
+          ### 🧪 Test Results
+          
+          | Check | Status | Result |
+          |-------|--------|--------|
+          | Build | ${{ steps.build-test.outputs.build_status }} | ${{ steps.build-test.outputs.build_status == 'success' && '✅ PASSED' || '❌ FAILED' }} |
+          | Tests | ${{ steps.test-suite.outputs.test_status }} | ${{ steps.test-suite.outputs.test_status == 'success' && '✅ PASSED' || '❌ FAILED' }} |
+          
+          ### 📊 Analysis Summary
+          
+          ${{ steps.review-analysis.outputs.recommendation == 'APPROVE' && '✅ **APPROVED**: Low-risk patch update with all tests passing. Safe to merge automatically.' || '' }}
+          ${{ steps.review-analysis.outputs.recommendation == 'REVIEW_REQUIRED' && '⚠️ **REVIEW REQUIRED**: Tests pass but manual review recommended due to update complexity or risk level.' || '' }}
+          ${{ steps.review-analysis.outputs.recommendation == 'REQUEST_CHANGES' && '❌ **CHANGES REQUESTED**: Build or tests failed. Investigation and fixes required before merge.' || '' }}
+          
+          ### 🔍 Detailed Analysis
+          
+          - **Compatibility**: ${{ steps.version-analysis.outputs.risk_level == 'LOW' && 'High - Patch version update' || steps.version-analysis.outputs.risk_level == 'MEDIUM' && 'Medium - Minor version update' || 'Low - Major version update' }}
+          - **Breaking Changes**: ${{ steps.version-analysis.outputs.risk_level == 'LOW' && 'None expected' || steps.version-analysis.outputs.risk_level == 'MEDIUM' && 'Possible - Check changelog' || 'Likely - Review required' }}
+          - **Testing Coverage**: Full test suite executed
+          - **Build Status**: Multi-module build verification completed
+          
+          ### 📚 Resources
+          
+          - [Dependency Management Guide](../docs/DEPENDABOT_MANAGEMENT_GUIDE.md)
+          - [Build Troubleshooting](../docs/07-BUILD_TROUBLESHOOTING.md)
+          - [Architecture Guide](../docs/02-ARCHITECTURE.md)
+          
+          ---
+          
+          *This review was automatically generated by the Dependabot Auto-Review system.*  
+          *For manual overrides or questions, please review the analysis and update accordingly.*
+          EOF
+          
+      - name: Post review comment
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        run: |
+          RECOMMENDATION="${{ steps.review-analysis.outputs.recommendation }}"
+          
+          case "$RECOMMENDATION" in
+            "APPROVE")
+              gh pr review ${{ steps.pr-info.outputs.pr_number }} --approve --body-file review-comment.md
+              ;;
+            "REVIEW_REQUIRED")
+              gh pr review ${{ steps.pr-info.outputs.pr_number }} --comment --body-file review-comment.md
+              ;;
+            "REQUEST_CHANGES")
+              gh pr review ${{ steps.pr-info.outputs.pr_number }} --request-changes --body-file review-comment.md
+              ;;
+          esac
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Add labels
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        run: |
+          RISK_LEVEL="${{ steps.version-analysis.outputs.risk_level }}"
+          UPDATE_TYPE="${{ steps.version-analysis.outputs.update_type }}"
+          RECOMMENDATION="${{ steps.review-analysis.outputs.recommendation }}"
+          
+          # Add risk level label
+          case "$RISK_LEVEL" in
+            "LOW") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "risk:low" ;;
+            "MEDIUM") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "risk:medium" ;;
+            "HIGH") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "risk:high" ;;
+          esac
+          
+          # Add update type label
+          gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "update:$UPDATE_TYPE"
+          
+          # Add status label
+          case "$RECOMMENDATION" in
+            "APPROVE") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "auto-approved" ;;
+            "REVIEW_REQUIRED") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "review-required" ;;
+            "REQUEST_CHANGES") gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "changes-requested" ;;
+          esac
+          
+          # Add dependabot label
+          gh pr edit ${{ steps.pr-info.outputs.pr_number }} --add-label "dependencies"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Auto-merge if approved
+        if: steps.pr-info.outputs.is_dependabot == 'true' && steps.review-analysis.outputs.auto_merge == 'true'
+        run: |
+          echo "Auto-merging approved low-risk update..."
+          gh pr merge ${{ steps.pr-info.outputs.pr_number }} --squash --auto
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload analysis artifacts
+        if: steps.pr-info.outputs.is_dependabot == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependabot-analysis-pr-${{ steps.pr-info.outputs.pr_number }}
+          path: |
+            .dependabot-analysis/
+            build-reports/
+            review-comment.md
+          retention-days: 30
+          
+      - name: Notify on failure
+        if: failure() && steps.pr-info.outputs.is_dependabot == 'true'
+        run: |
+          gh pr comment ${{ steps.pr-info.outputs.pr_number }} --body "🚨 **Automated review failed**
+
+          The automated Dependabot review process encountered an error. Please review manually.
+          
+          **Error Context**:
+          - Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - PR: ${{ steps.pr-info.outputs.pr_title }}
+          - Status: Review process failed
+          
+          Please check the workflow logs for details and perform manual review."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

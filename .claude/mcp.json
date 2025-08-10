@@ -13,6 +13,18 @@
       "env": {
         "PATH": "${PATH}:${HOME}/.local/bin"
       }
+    },
+    "fetch": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "./mcp-servers/src/fetch",
+        "run",
+        "mcp-server-fetch"
+      ],
+      "env": {
+        "PATH": "${PATH}:${HOME}/.local/bin"
+      }
     }
   }
 }

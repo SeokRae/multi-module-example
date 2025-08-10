@@ -1,0 +1,12 @@
+35:            mavenBom 'org.springframework.boot:spring-boot-dependencies:3.2.2'
+45:            dependency 'org.redisson:redisson-spring-boot-starter:3.24.3'
+56:        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+=== Spring Boot Dependencies ===
+
+=== QueryDSL Dependencies ===
+
+=== JWT Dependencies ===
+
+=== Redisson Dependencies ===
+
+=== Other Key Dependencies ===
