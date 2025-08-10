@@ -87,7 +87,7 @@ jobs:
         run: ./gradlew :${{ matrix.module }}:test
 
       - name: Generate test report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: always()
         with:
           name: Test Results (${{ matrix.module }})
@@ -240,7 +240,7 @@ jobs:
     environment: staging
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: jar-artifacts
 
@@ -260,7 +260,7 @@ jobs:
     environment: production
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: jar-artifacts
 
