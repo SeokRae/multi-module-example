@@ -1,0 +1,93 @@
+@startuml GitFlowWorkflow
+!theme plain
+
+participant "Developer" as Dev
+participant "Feature Branch\n(feature/*)" as Feature
+participant "Develop Branch" as Develop
+participant "Release Branch\n(release/*)" as Release
+participant "Main Branch\n(main/master)" as Main
+participant "Hotfix Branch\n(hotfix/*)" as Hotfix
+
+title Git Flow 워크플로우 - 종합적인 개발 생명주기
+
+== Git Flow 브랜치 설명 ==
+Note over Main: **main/master**: 프로덕션 배포용 브랜치\n- 항상 배포 가능한 상태 유지\n- 릴리스 및 핫픽스만 병합
+Note over Develop: **develop**: 개발 통합 브랜치\n- 모든 기능 개발의 기준점\n- 다음 릴리스 준비용
+Note over Feature: **feature/***: 기능 개발 브랜치\n- develop에서 분기\n- 개발 완료 후 develop에 병합
+Note over Release: **release/***: 릴리스 준비 브랜치\n- develop에서 분기\n- main과 develop에 병합
+Note over Hotfix: **hotfix/***: 긴급 수정 브랜치\n- main에서 분기\n- main과 develop에 병합
+
+== 초기 설정 ==
+Dev -> Main: 1. main 브랜치 생성
+Dev -> Develop: 2. develop 브랜치 생성 (main에서 분기)
+Note right of Develop: develop: 개발용 통합 브랜치\n모든 기능 개발의 기준점
+
+== 기능 개발 워크플로우 ==
+group 기능 개발 사이클
+    Dev -> Feature: 3. feature 브랜치 생성
+    Note over Feature: git flow feature start [feature-name]\n또는 git checkout -b feature/[name] develop
+    
+    activate Feature
+    Dev -> Feature: 4. 기능 개발 및 커밋
+    Note right of Feature: 기능 구현\n테스트 작성\n코드 리뷰
+    
+    Feature -> Develop: 5. 기능 완료 후 develop에 병합
+    Note over Feature, Develop: git flow feature finish [feature-name]\n또는 Pull Request → merge
+    deactivate Feature
+    
+    Dev -> Feature: 6. feature 브랜치 삭제
+    destroy Feature
+end group
+
+== 릴리스 준비 워크플로우 ==
+group 릴리스 준비
+    Dev -> Release: 7. release 브랜치 생성
+    Note over Release: git flow release start [version]\n버전 준비 및 버그 수정
+    
+    activate Release
+    Dev -> Release: 8. 버전 업데이트 및 최종 테스트
+    Note right of Release: - 버전 번호 업데이트\n- 문서 업데이트\n- 마지막 버그 수정\n- QA 테스트
+    
+    Release -> Main: 9. main에 병합
+    Note over Release, Main: 프로덕션 배포 준비 완료
+    
+    Release -> Develop: 10. develop에 병합
+    Note over Release, Develop: 릴리스 변경사항을 develop에 반영
+    deactivate Release
+    
+    Dev -> Main: 11. 릴리스 태그 생성
+    Note over Main: git tag -a v[version] -m "Release v[version]"
+    
+    Dev -> Release: 12. release 브랜치 삭제
+    destroy Release
+end group
+
+== 핫픽스 워크플로우 ==
+group 긴급 수정
+    Note over Main: 🚨 프로덕션 이슈 발생!
+    
+    Dev -> Hotfix: 13. hotfix 브랜치 생성 (main에서)
+    Note over Hotfix: git flow hotfix start [hotfix-name]\n긴급 버그 수정
+    
+    activate Hotfix
+    Dev -> Hotfix: 14. 핫픽스 개발
+    Note right of Hotfix: - 긴급 버그 수정\n- 테스트\n- 검증
+    
+    Hotfix -> Main: 15. main에 병합
+    Note over Hotfix, Main: 즉시 프로덕션 배포
+    
+    Hotfix -> Develop: 16. develop에 병합
+    Note over Hotfix, Develop: 수정사항을 개발 브랜치에도 반영
+    deactivate Hotfix
+    
+    Dev -> Main: 17. 핫픽스 태그 생성
+    Note over Main: git tag -a v[version] -m "Hotfix v[version]"
+    
+    Dev -> Hotfix: 18. hotfix 브랜치 삭제
+    destroy Hotfix
+end group
+
+== 지속적인 개발 ==
+Note over Dev, Develop: 위 과정을 반복하여 지속적인 개발 진행
+
+@enduml
