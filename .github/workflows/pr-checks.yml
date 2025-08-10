@@ -1,0 +1,226 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  JAVA_VERSION: '17'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false'
+
+jobs:
+  # PR 제목 및 브랜치명 검증
+  pr-validation:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+            build
+          scopes: |
+            user
+            product
+            order
+            auth
+            api
+            db
+            security
+            cache
+            batch
+          requireScope: false
+          disallowScopes: |
+            release
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+
+      - name: Validate branch name
+        run: |
+          branch_name="${{ github.head_ref }}"
+          if [[ ! "$branch_name" =~ ^(feature|fix|hotfix|docs|chore)\/[a-z0-9-]+$ ]]; then
+            echo "❌ Branch name '$branch_name' does not follow the naming convention."
+            echo "Expected format: type/description (e.g., feature/user-authentication)"
+            echo "Valid types: feature, fix, hotfix, docs, chore"
+            exit 1
+          else
+            echo "✅ Branch name '$branch_name' follows the naming convention."
+          fi
+
+  # 빠른 검증 (PR용)
+  quick-check:
+    name: Quick Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run quick compilation check
+        run: ./gradlew compileJava compileTestJava
+
+      - name: Run affected module tests
+        run: |
+          # 변경된 파일을 기반으로 영향받는 모듈 감지
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "Changed files: $changed_files"
+          
+          # 간단한 모듈 감지 로직
+          if echo "$changed_files" | grep -q "common/"; then
+            echo "Testing common modules..."
+            ./gradlew :common:common-core:test :common:common-web:test :common:common-security:test
+          fi
+          
+          if echo "$changed_files" | grep -q "domain/user"; then
+            echo "Testing user domain..."
+            ./gradlew :domain:user-domain:test
+          fi
+          
+          if echo "$changed_files" | grep -q "application/user-api"; then
+            echo "Testing user-api..."
+            ./gradlew :application:user-api:test
+          fi
+          
+          # 전체 테스트가 빠르게 실행되는 경우 전체 실행
+          if [ $(echo "$changed_files" | wc -l) -lt 5 ]; then
+            echo "Running full test suite for small changes..."
+            ./gradlew test
+          fi
+
+  # 문서 변경 검증
+  docs-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for README updates
+        run: |
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # API 변경시 문서 업데이트 확인
+          if echo "$changed_files" | grep -q "Controller.java\|@RestController"; then
+            if ! echo "$changed_files" | grep -q "docs/\|README"; then
+              echo "⚠️ API 변경이 감지되었지만 문서가 업데이트되지 않았습니다."
+              echo "docs/ 폴더나 README 파일 업데이트를 고려해주세요."
+            fi
+          fi
+
+      - name: Check for breaking changes
+        run: |
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # 잠재적 Breaking Change 감지
+          if echo "$changed_files" | grep -q "build.gradle\|application.yml\|Entity.java"; then
+            echo "🔍 잠재적 Breaking Change가 감지되었습니다:"
+            echo "$changed_files" | grep -E "(build.gradle|application.yml|Entity.java)"
+            echo "변경사항이 하위 호환성에 영향을 주는지 확인해주세요."
+          fi
+
+  # 보안 체크
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for secrets
+        run: |
+          # 민감한 정보 패턴 검색
+          if git diff origin/${{ github.base_ref }}...HEAD | grep -iE "(password|secret|key|token)" | grep -E "\+.*="; then
+            echo "❌ 잠재적으로 민감한 정보가 감지되었습니다:"
+            git diff origin/${{ github.base_ref }}...HEAD | grep -iE "(password|secret|key|token)" | grep -E "\+.*="
+            echo "하드코딩된 비밀정보가 없는지 확인해주세요."
+            exit 1
+          else
+            echo "✅ 민감한 정보 패턴이 감지되지 않았습니다."
+          fi
+
+      - name: Check for SQL injection patterns
+        run: |
+          # 잠재적 SQL 인젝션 패턴 검색
+          if git diff origin/${{ github.base_ref }}...HEAD | grep -E "\+.*\.(createQuery|createNativeQuery|execute)" | grep -v "?" ; then
+            echo "⚠️ SQL 쿼리에서 파라미터 바인딩을 사용하지 않는 패턴이 감지되었습니다."
+            echo "SQL 인젝션 방지를 위해 PreparedStatement나 JPA 파라미터를 사용해주세요."
+          fi
+
+  # 성능 체크 (간단한 메트릭)
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Check build performance
+        run: |
+          echo "🚀 빌드 성능 측정 중..."
+          start_time=$(date +%s)
+          ./gradlew build -x test --quiet
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          
+          echo "⏱️ 빌드 시간: ${duration}초"
+          
+          if [ $duration -gt 300 ]; then
+            echo "⚠️ 빌드 시간이 5분을 초과했습니다. 빌드 최적화를 고려해주세요."
+          elif [ $duration -gt 120 ]; then
+            echo "⚠️ 빌드 시간이 2분을 초과했습니다."
+          else
+            echo "✅ 빌드 성능이 양호합니다."
+          fi

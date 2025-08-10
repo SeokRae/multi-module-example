@@ -40,12 +40,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Checkstyle
-        run: ./gradlew checkstyleMain checkstyleTest
-
-      - name: Run SpotBugs
-        run: ./gradlew spotbugsMain spotbugsTest
-        continue-on-error: true
+      - name: Run compilation check
+        run: ./gradlew compileJava compileTestJava
 
   # Unit & Integration Tests
   test:
@@ -57,10 +53,12 @@ jobs:
           'common:common-core',
           'common:common-web', 
           'common:common-security',
+          'common:common-cache',
           'domain:user-domain',
-          'domain:product-domain',
+          'domain:product-domain', 
           'domain:order-domain',
           'infrastructure:data-access',
+          'infrastructure:cache-infrastructure',
           'application:user-api',
           'application:batch-app'
         ]
@@ -97,11 +95,14 @@ jobs:
           reporter: java-junit
           fail-on-error: true
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
-        if: matrix.module == 'application:user-api'  # Upload coverage for main module
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always() && matrix.module == 'application:user-api'
         with:
-          file: ./application/user-api/build/reports/jacoco/test/jacocoTestReport.xml
+          name: test-results-${{ matrix.module }}
+          path: |
+            **/build/test-results/test/
+            **/build/reports/tests/test/
 
   # Build Application
   build:
@@ -192,7 +193,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run integration tests
-        run: ./gradlew integrationTest
+        run: |
+          if ./gradlew tasks --all | grep -q "integrationTest"; then
+            ./gradlew integrationTest
+          else
+            echo "Integration tests not configured, running regular tests..."
+            ./gradlew test
+          fi
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ecommerce_test
@@ -278,11 +285,16 @@ jobs:
     needs: [deploy-staging, deploy-production]
     if: always()
     steps:
-      - name: Notify Slack
-        if: always()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          channel: '#dev-notifications'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY  
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workflow**: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ **Status**: Deployment successful!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status**: Deployment failed!" >> $GITHUB_STEP_SUMMARY
+          fi

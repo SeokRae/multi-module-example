@@ -1,0 +1,59 @@
+# Dependabot 설정 - 자동 의존성 업데이트
+version: 2
+updates:
+  # Gradle 의존성 업데이트
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "SeokRae"
+    assignees:
+      - "SeokRae"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "java"
+
+  # GitHub Actions 워크플로우 업데이트
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "SeokRae"
+    assignees:
+      - "SeokRae"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Docker 이미지 업데이트 (향후 사용)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "SeokRae"
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
