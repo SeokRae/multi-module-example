@@ -1,6 +1,8 @@
 package com.example.infrastructure.user;
 
 import com.example.user.domain.User;
+import com.example.user.domain.UserRole;
+import com.example.user.domain.UserStatus;
 import com.example.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -56,5 +58,26 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return jpaRepository.existsByEmail(email);
+    }
+    
+    @Override
+    public List<User> findByRole(UserRole role) {
+        return jpaRepository.findByRole(role).stream()
+                .map(UserEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<User> findByStatus(UserStatus status) {
+        return jpaRepository.findByStatus(status).stream()
+                .map(UserEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<User> findByRoleAndStatus(UserRole role, UserStatus status) {
+        return jpaRepository.findByRoleAndStatus(role, status).stream()
+                .map(UserEntity::toDomain)
+                .collect(Collectors.toList());
     }
 }

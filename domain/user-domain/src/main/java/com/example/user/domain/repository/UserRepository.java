@@ -1,6 +1,8 @@
 package com.example.user.domain.repository;
 
 import com.example.user.domain.User;
+import com.example.user.domain.UserRole;
+import com.example.user.domain.UserStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +20,10 @@ public interface UserRepository {
     void delete(User user);
     
     boolean existsByEmail(String email);
+    
+    List<User> findByRole(UserRole role);
+    
+    List<User> findByStatus(UserStatus status);
+    
+    List<User> findByRoleAndStatus(UserRole role, UserStatus status);
 }

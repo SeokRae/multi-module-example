@@ -10,6 +10,9 @@ dependencies {
     // Event publishing (도메인 이벤트)
     implementation 'org.springframework:spring-context'
     
+    // Security for password encoding
+    api 'org.springframework.security:spring-security-crypto'
+    
     // Validation
     api 'org.springframework.boot:spring-boot-starter-validation'
     

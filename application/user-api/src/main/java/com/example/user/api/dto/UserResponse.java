@@ -2,6 +2,7 @@ package com.example.user.api.dto;
 
 import com.example.user.domain.User;
 import com.example.user.domain.UserStatus;
+import com.example.user.domain.UserRole;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,7 +15,9 @@ public class UserResponse {
     private Long id;
     private String email;
     private String name;
+    private String phone;
     private UserStatus status;
+    private UserRole role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -23,7 +26,9 @@ public class UserResponse {
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .phone(user.getPhone())
                 .status(user.getStatus())
+                .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

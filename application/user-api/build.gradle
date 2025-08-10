@@ -1,6 +1,7 @@
 dependencies {
     // Common modules
     implementation project(':common:common-web')
+    implementation project(':common:common-security')
     
     // Domain modules
     implementation project(':domain:user-domain')

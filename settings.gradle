@@ -4,10 +4,12 @@ rootProject.name = 'multi-module-example'
 include 'common:common-core'
 include 'common:common-web'
 include 'common:common-cache'
+include 'common:common-security'
 
 // Domain modules  
 include 'domain:user-domain'
 include 'domain:order-domain'
+include 'domain:product-domain'
 
 // Infrastructure modules
 include 'infrastructure:data-access'
