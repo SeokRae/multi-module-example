@@ -42,7 +42,7 @@ subprojects {
             dependency 'com.querydsl:querydsl-jpa:5.0.0'
             dependency 'com.querydsl:querydsl-apt:5.0.0'
             dependency 'com.vladmihalcea:hibernate-types-60:2.21.1'
-            dependency 'org.redisson:redisson-spring-boot-starter:3.24.3'
+            dependency 'org.redisson:redisson-spring-boot-starter:3.50.0'
             dependency 'com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0'
             dependency 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
             dependency 'com.opencsv:opencsv:5.8'
