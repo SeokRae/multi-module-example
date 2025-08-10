@@ -75,7 +75,7 @@ public class UserService {
         }
         
         if (name == null || name.trim().isEmpty()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT.getCode(),
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE.getCode(),
                     "사용자 이름은 필수입니다");
         }
     }
