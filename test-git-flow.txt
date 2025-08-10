@@ -1,0 +1,7 @@
+Git Flow 테스트 파일
+
+이 파일은 Git Flow 프로세스를 테스트하기 위해 생성되었습니다.
+
+작성일: 2025-08-10
+브랜치: feature/test-git-flow
+목적: Git Flow 워크플로우 검증
