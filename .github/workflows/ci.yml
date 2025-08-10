@@ -240,7 +240,7 @@ jobs:
     environment: staging
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: jar-artifacts
 
@@ -260,7 +260,7 @@ jobs:
     environment: production
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: jar-artifacts
 
