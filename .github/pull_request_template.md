@@ -1,6 +1,15 @@
-# Pull Request
+# 🔄 Pull Request
 
-## 📋 변경 사항 유형
+## 📋 PR 유형 및 브랜치
+<!-- 해당하는 항목에 ✅ 표시해주세요 -->
+
+### 브랜치 타입
+- [ ] 🌿 **Feature Branch** (`feature/*`)
+- [ ] 🐛 **Bugfix Branch** (`bugfix/*`)
+- [ ] 🚨 **Hotfix Branch** (`hotfix/*`)
+- [ ] 🚀 **Release Branch** (`release/*`)
+
+### 변경 사항 유형
 - [ ] 🆕 새로운 기능 (feature)
 - [ ] 🐛 버그 수정 (fix)
 - [ ] 📚 문서 업데이트 (docs)
@@ -9,11 +18,25 @@
 - [ ] ⚡ 성능 개선 (perf)
 - [ ] ✅ 테스트 추가/수정 (test)
 - [ ] 🔧 빌드/설정 변경 (chore)
+- [ ] 🔒 보안 개선 (security)
 
-## 🎯 관련 이슈
+## 🎯 Phase 정보
+<!-- Phase 개발인 경우 작성 -->
+
+**브랜치명**: `[브랜치 전체명]`  
+**Phase**: Phase [번호] - [이름] (해당시)  
+**목표**: [Phase의 주요 목표]
+
+## 🔗 관련 이슈
 <!-- 관련 이슈가 있다면 연결해주세요 -->
-Closes #(이슈번호)
-Related to #(이슈번호)
+- Closes #(이슈번호)
+- Fixes #(이슈번호)  
+- Related to #(이슈번호)
+
+### 종속성
+- [ ] 다른 PR에 의존: #(PR번호)
+- [ ] 다른 PR을 블록: #(PR번호)
+- [ ] 독립적 PR
 
 ## 📝 변경 상세 내용
 ### 구현된 기능
@@ -119,7 +142,38 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 
 ---
 
+## ✅ 브랜치 워크플로우 체크리스트
+
+### 브랜치 생성 확인
+- [ ] `develop` 브랜치에서 시작
+- [ ] 브랜치명이 컨벤션을 따름 (`feature/`, `bugfix/`, `hotfix/`)
+- [ ] 최신 `develop` 브랜치로 시작됨
+
+### 커밋 확인  
+- [ ] Conventional Commits 형식 준수
+- [ ] 각 커밋이 논리적 단위를 가짐
+- [ ] Co-Authored-By 태그 포함 (Claude Code 사용시)
+
+### 머지 전 확인
+- [ ] 모든 CI 체크 통과
+- [ ] 충돌(Conflicts) 해결 완료
+- [ ] 최신 target 브랜치와 동기화
+- [ ] 최소 1명 이상의 리뷰 승인
+
+### 머지 후 작업 (체크용)
+- [ ] Feature 브랜치 삭제 예정
+- [ ] 관련 이슈 닫기 예정
+- [ ] 다음 Phase 또는 작업 계획됨
+
+---
+
+**Git Flow 워크플로우를 따라주세요:**
+1. **Feature**: `develop` → `feature/branch-name` → `develop` (PR 머지)
+2. **Release**: `develop` → `release/vX.Y.Z` → `main` + `develop`
+3. **Hotfix**: `main` → `hotfix/issue-name` → `main` + `develop`
+
 **PR 작성자를 위한 팁:**
 - 작고 집중된 변경사항으로 PR을 구성해주세요
 - 커밋 메시지는 Conventional Commits 형식을 따라주세요
 - 자신의 코드를 먼저 리뷰한 후 PR을 생성해주세요
+- 📚 [개발 워크플로우 가이드](DEVELOPMENT_WORKFLOW.md) 참조
