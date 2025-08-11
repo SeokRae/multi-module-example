@@ -78,7 +78,7 @@ configure(subprojects.findAll { it.name == 'common' || it.name == 'domain' || it
 sonar {
     properties {
         property "sonar.projectKey", "SeokRae_multi-module-example"
-        property "sonar.organization", "seokrae"
+        property "sonar.organization", "seokrae-github"  // 개인 계정용 조직명
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.exclusions", "**/*Application.java,**/*Config.java,**/*Exception.java"
         property "sonar.cpd.exclusions", "**/*Entity.java,**/*Dto.java,**/*Request.java,**/*Response.java"

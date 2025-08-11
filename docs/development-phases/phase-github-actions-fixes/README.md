@@ -145,11 +145,17 @@ Resource not accessible by integration
 - `.github/workflows/sonarqube.yml` (신규)
 - `build.gradle` (SonarQube 플러그인 및 설정 추가)
 
-**남은 작업**: SonarCloud 조직/프로젝트 생성 및 SONAR_TOKEN 설정
+**개선사항**:
+- SonarQube를 수동 실행으로 변경 (Organization 필요)
+- 간단한 코드 품질 체크 워크플로우 추가
+- 개인 리포지토리에 적합한 수준으로 조정
+
+**남은 선택사항**:
+- Option A: SonarCloud 설정 (Organization 생성 또는 개인 계정 사용)
+- Option B: 기본 코드 품질 체크만 사용 (현재 구현됨)
 
 ### ⏳ 예정된 작업
-1. SonarCloud 계정 설정 및 첫 분석 실행
-2. Issue #19: 워크플로우 성능 최적화
+1. Issue #19: 워크플로우 성능 최적화
 3. 성능 최적화 구현
 4. 문서화 완료
 
