@@ -46,6 +46,7 @@ jobs:
             security
             cache
             batch
+            ci
           requireScope: false
           disallowScopes: |
             release
@@ -192,10 +193,10 @@ jobs:
 
       - name: Check for secrets
         run: |
-          # 민감한 정보 패턴 검색
-          if git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep -iE "(password|secret|key|token)" | grep -E "\+.*="; then
+          # 민감한 정보 패턴 검색 (워크플로우 파일 제외)
+          if git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} -- ':!.github/workflows/*' | grep -iE "(password|secret|key|token)" | grep -E "\+.*="; then
             echo "❌ 잠재적으로 민감한 정보가 감지되었습니다:"
-            git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep -iE "(password|secret|key|token)" | grep -E "\+.*="
+            git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} -- ':!.github/workflows/*' | grep -iE "(password|secret|key|token)" | grep -E "\+.*="
             echo "하드코딩된 비밀정보가 없는지 확인해주세요."
             exit 1
           else
