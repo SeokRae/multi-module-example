@@ -26,6 +26,9 @@ public interface OrderRepository {
     
     Page<Order> findByUserIdAndStatus(Long userId, OrderStatus status, Pageable pageable);
     
+    // Non-pageable version for OrderService
+    List<Order> findByUserIdAndStatus(Long userId, OrderStatus status);
+    
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
     
     Page<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
@@ -49,4 +52,7 @@ public interface OrderRepository {
     BigDecimal sumTotalAmountByStatus(OrderStatus status);
     
     BigDecimal sumTotalAmountByUserIdAndDateBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Total amount by user for OrderService
+    BigDecimal getTotalAmountByUserId(Long userId);
 }

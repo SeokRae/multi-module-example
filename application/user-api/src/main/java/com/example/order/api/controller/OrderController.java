@@ -12,6 +12,7 @@ import com.example.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -91,8 +92,12 @@ public class OrderController {
         
         Page<Order> orders;
         if (status != null) {
-            orders = orderService.findByStatus(status, pageable);
-            orders = orders.filter(order -> order.getUserId().equals(userPrincipal.getId()));
+            // Use the non-pageable method and filter, then convert to page
+            List<Order> allStatusOrders = orderService.findByUserIdAndStatus(userPrincipal.getId(), status);
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), allStatusOrders.size());
+            List<Order> pageContent = allStatusOrders.subList(start, end);
+            orders = new PageImpl<>(pageContent, pageable, allStatusOrders.size());
         } else {
             orders = orderService.findByUserId(userPrincipal.getId(), pageable);
         }

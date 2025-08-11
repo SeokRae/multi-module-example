@@ -273,7 +273,7 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build, integration-test, security-scan]
+    needs: [build, integration-test, security-check]
     if: github.ref == 'refs/heads/main'
     environment: production
     steps:

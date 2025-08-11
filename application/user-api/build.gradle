@@ -6,6 +6,7 @@ dependencies {
     // Domain modules
     implementation project(':domain:user-domain')
     implementation project(':domain:order-domain')
+    implementation project(':domain:product-domain')
     
     // Infrastructure modules
     implementation project(':infrastructure:data-access')
