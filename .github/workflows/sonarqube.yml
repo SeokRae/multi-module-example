@@ -53,5 +53,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # 테스트와 함께 SonarQube 분석 실행
-          ./gradlew build sonar --info
+          # SONAR_TOKEN이 설정되어 있는 경우에만 SonarQube 분석 실행
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "🔍 Running SonarQube analysis..."
+            ./gradlew build sonar --info
+          else
+            echo "⚠️ SONAR_TOKEN not configured. Running build only..."
+            echo "To enable SonarQube analysis:"
+            echo "1. Create a SonarCloud account and project"
+            echo "2. Generate a token and add it as SONAR_TOKEN secret"
+            echo "3. Update sonar.projectKey and sonar.organization in build.gradle"
+            ./gradlew build --info
+          fi
