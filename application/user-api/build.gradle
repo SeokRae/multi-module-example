@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
     
     // Rate limiting (API 호출 제한)
-    implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core'
+    implementation 'com.bucket4j:bucket4j-core'
     
     // Database
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
