@@ -1,4 +1,4 @@
-name: Auto PR Review and Merge
+name: Auto PR Merge
 
 on:
   pull_request:
@@ -102,35 +102,14 @@ jobs:
             
             core.setFailed('⏰ Timeout waiting for CI checks to complete');
 
-  # Auto-approve and merge the PR
-  auto-approve-merge:
+  # Auto-merge the PR (skip approval step)
+  auto-merge:
     needs: [check-auto-pr, wait-for-checks]
     if: needs.check-auto-pr.outputs.is_auto_pr == 'true'
     runs-on: ubuntu-latest
     
     steps:
-      - name: Auto-approve PR
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              event: 'APPROVE',
-              body: `🤖 **자동 승인**
-              
-              Claude Code가 생성한 PR로 모든 CI/CD 검사가 통과했습니다.
-              
-              ✅ 빌드 성공
-              ✅ 테스트 통과
-              ✅ 코드 품질 검사 통과
-              
-              자동으로 승인하고 머지합니다! 🚀`
-            });
-
-      - name: Enable auto-merge
+      - name: Auto-merge PR
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +121,7 @@ jobs:
                 pull_number: context.payload.pull_request.number,
                 merge_method: 'squash',
                 commit_title: `🤖 ${context.payload.pull_request.title}`,
-                commit_message: `${context.payload.pull_request.body}\n\n🤖 Automatically merged by Claude Code workflow`
+                commit_message: `${context.payload.pull_request.body}\n\n🤖 Auto-merged by Claude Code (SonarQube passed)`
               });
               
               console.log('🎉 PR successfully merged!');
@@ -158,7 +137,7 @@ jobs:
                 
                 오류: ${error.message}
                 
-                수동으로 머지해주세요.`
+                SonarQube 검사는 통과했지만 머지에 실패했습니다. 수동으로 머지해주세요.`
               });
               
               core.setFailed(`Failed to merge PR: ${error.message}`);
@@ -213,9 +192,8 @@ jobs:
                 
                 PR #${context.payload.pull_request.number}이 성공적으로 머지되었습니다.
                 
-                ✅ 모든 CI/CD 검사 통과
-                ✅ 자동 리뷰 및 승인
-                ✅ 코드 머지 완료
+                ✅ SonarQube 코드 품질 검사 통과
+                ✅ 자동 머지 완료
                 ✅ 피처 브랜치 정리
                 
                 **Claude Code 자동 개발 워크플로우 완료** 🚀`
