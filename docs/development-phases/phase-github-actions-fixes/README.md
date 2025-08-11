@@ -53,8 +53,37 @@ fatal: ambiguous argument 'origin/main...HEAD': unknown revision or path not in 
 
 **테스트 필요**: 다음 PR에서 자동으로 검증됨
 
+#### Issue #17 해결: GitHub Token 권한 부족 문제
+**날짜**: 2025-08-11  
+**브랜치**: `fix/github-token-permissions-issue-17`
+
+**문제점**:
+```
+Resource not accessible by integration
+```
+
+**해결 방법**:
+1. **PR 검증 작업에 권한 추가**:
+   ```yaml
+   pr-validation:
+     permissions:
+       contents: read
+       pull-requests: write  # PR 제목 검증을 위해 필요
+       checks: write        # 체크 상태 업데이트를 위해 필요
+   ```
+
+2. **Git diff 명령어 통일**:
+   - 보안 체크와 SQL 인젝션 체크에서 일관된 GitHub 컨텍스트 사용
+   ```yaml
+   # 수정됨 (모든 diff 명령어 통일)
+   git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }}
+   ```
+
+**영향받는 파일**:
+- `.github/workflows/pr-checks.yml`
+
 ### 🔄 진행 중인 작업
-- Issue #17: Token 권한 부족 문제 분석 중
+- Issue #17: 문서화 및 테스트 준비 중
 
 ### ⏳ 예정된 작업
 1. PR 워크플로우에 권한 설정 추가

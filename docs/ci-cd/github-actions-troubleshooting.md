@@ -33,11 +33,17 @@ Resource not accessible by integration
 
 **해결 방법:**
 ```yaml
-# 권한 추가
-permissions:
-  contents: read
-  pull-requests: write  # PR 검증을 위해 필요
-  checks: write        # 체크 상태 업데이트를 위해 필요
+# PR 검증 작업에 권한 추가
+pr-validation:
+  name: Validate PR
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    pull-requests: write  # PR 제목 검증을 위해 필요 
+    checks: write        # 체크 상태 업데이트를 위해 필요
+  steps:
+    - name: Validate PR title
+      uses: amannn/action-semantic-pull-request@v5
 ```
 
 ### 3. Security Scan 권한 오류
