@@ -46,25 +46,48 @@ pr-validation:
       uses: amannn/action-semantic-pull-request@v5
 ```
 
-### 3. Security Scan 최적화 (개인 리포지토리용)
+### 3. 코드 품질/보안 분석: SonarQube 도입
 **문제:**
 - GitHub Security Scan(SARIF)은 주로 Enterprise/Organization 용도
-- 개인 리포지토리에서는 불필요한 복잡성 추가
+- 개인 리포지토리에는 더 포괄적인 분석 도구가 필요
 
-**해결 방법:**
+**해결 방법: SonarQube 사용**
 ```yaml
-# 복잡한 SARIF 업로드 대신 간단한 보안 체크 사용
-security-check:
-  name: Security Check
-  steps:
-    - name: Run dependency vulnerability check
-      run: |
-        ./gradlew dependencies --configuration runtimeClasspath | grep -i "FAIL\|ERROR\|WARN" || echo "✅ No issues found"
-        
-    - name: Check for hardcoded secrets (basic)
-      run: |
-        # 기본적인 시크릿 패턴 체크
-        git log --oneline -10 | xargs -I {} git show {} --name-only | grep -v ".github" | xargs grep -l -i -E "(password|secret|key|token).*=" 2>/dev/null || echo "✅ No secrets found"
+# .github/workflows/sonarqube.yml
+name: SonarQube Code Analysis
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build and analyze with SonarQube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info
+```
+
+**Gradle 설정:**
+```gradle
+plugins {
+    id 'org.sonarqube' version '4.4.1.3373'
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "your-project-key"
+        property "sonar.organization", "your-org"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
 ```
 
 ### 4. Checkout 설정 부족

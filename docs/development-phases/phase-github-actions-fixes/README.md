@@ -104,8 +104,52 @@ Resource not accessible by integration
 - `.github/workflows/ci.yml`
 - `.github/workflows/qodana_code_quality.yml`
 
+#### Issue #18 해결: SonarQube 코드 품질/보안 분석 도입
+**날짜**: 2025-08-11  
+**브랜치**: `fix/github-token-permissions-issue-17`
+
+**문제 재정의**:
+- 기존 SARIF 업로드는 Enterprise/Organization 전용 기능
+- 개인 리포지토리에는 SonarQube가 더 적합한 솔루션
+
+**구현 사항**:
+1. **SonarQube 워크플로우 생성**:
+   ```yaml
+   # .github/workflows/sonarqube.yml
+   - SonarCloud 연동 (무료 퍼블릭 리포지토리)
+   - 캐싱으로 성능 최적화
+   - PR 및 메인 브랜치 자동 분석
+   ```
+
+2. **Gradle 설정 추가**:
+   ```gradle
+   plugins {
+       id 'org.sonarqube' version '4.4.1.3373'
+   }
+   
+   sonar {
+       properties {
+           property "sonar.projectKey", "SeokRae_multi-module-example"
+           property "sonar.organization", "seokrae"
+           // 코드 커버리지, 테스트 결과 통합
+       }
+   }
+   ```
+
+**장점**:
+- 코드 품질, 보안 취약점, 중복 코드 통합 분석
+- PR에 직접 분석 결과 표시
+- 무료 사용 (퍼블릭 리포지토리)
+
+**영향받는 파일**:
+- `.github/workflows/sonarqube.yml` (신규)
+- `build.gradle` (SonarQube 플러그인 및 설정 추가)
+
+**남은 작업**: SonarCloud 조직/프로젝트 생성 및 SONAR_TOKEN 설정
+
 ### ⏳ 예정된 작업
-1. Issue #19: 워크플로우 성능 최적화
+1. SonarCloud 계정 설정 및 첫 분석 실행
+2. Issue #19: 워크플로우 성능 최적화
 3. 성능 최적화 구현
 4. 문서화 완료
 
