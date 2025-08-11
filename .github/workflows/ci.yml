@@ -83,12 +83,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Check if tests exist
+        id: check-tests
+        run: |
+          module_path=$(echo "${{ matrix.module }}" | sed 's/:/\//g')
+          if [ -d "$module_path/src/test" ] && [ "$(find $module_path/src/test -name '*.java' | wc -l)" -gt 0 ]; then
+            echo "tests_exist=true" >> $GITHUB_OUTPUT
+            echo "Tests found in ${{ matrix.module }}"
+          else
+            echo "tests_exist=false" >> $GITHUB_OUTPUT
+            echo "No tests found in ${{ matrix.module }}, skipping test execution"
+          fi
+
       - name: Run tests for ${{ matrix.module }}
+        if: steps.check-tests.outputs.tests_exist == 'true'
         run: ./gradlew :${{ matrix.module }}:test
 
       - name: Generate test report
         uses: dorny/test-reporter@v2
-        if: always()
+        if: always() && steps.check-tests.outputs.tests_exist == 'true'
         with:
           name: Test Results (${{ matrix.module }})
           path: '**/build/test-results/test/TEST-*.xml'

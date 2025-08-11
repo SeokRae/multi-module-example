@@ -43,3 +43,8 @@ This is a learning/example project demonstrating multi-module Gradle Spring Boot
 - Comprehensive documentation in docs/ directory
 - MCP integration for AI-assisted development
 - Follow modular architecture patterns defined in docs/02-ARCHITECTURE.md
+
+## AI Assistant Guidelines
+- ALWAYS use plan mode for all non-trivial tasks that require multiple steps or implementation work
+- Present implementation plans for user approval before executing code changes
+- Use ExitPlanMode tool to present plans clearly before implementation

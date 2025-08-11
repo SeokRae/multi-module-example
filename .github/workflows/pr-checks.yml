@@ -98,26 +98,45 @@ jobs:
           changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           echo "Changed files: $changed_files"
           
+          # 테스트가 있는 모듈만 실행하는 함수
+          run_tests_if_exist() {
+            local module=$1
+            local module_path=$(echo "$module" | sed 's/:/\//g')
+            
+            if [ -d "$module_path/src/test" ] && [ "$(find $module_path/src/test -name '*.java' | wc -l)" -gt 0 ]; then
+              echo "Running tests for $module..."
+              ./gradlew :$module:test
+            else
+              echo "No tests found for $module, skipping..."
+            fi
+          }
+          
           # 간단한 모듈 감지 로직
           if echo "$changed_files" | grep -q "common/"; then
             echo "Testing common modules..."
-            ./gradlew :common:common-core:test :common:common-web:test :common:common-security:test
+            run_tests_if_exist "common:common-core"
+            run_tests_if_exist "common:common-web"
+            run_tests_if_exist "common:common-security"
+            run_tests_if_exist "common:common-cache"
           fi
           
           if echo "$changed_files" | grep -q "domain/user"; then
             echo "Testing user domain..."
-            ./gradlew :domain:user-domain:test
+            run_tests_if_exist "domain:user-domain"
           fi
           
           if echo "$changed_files" | grep -q "application/user-api"; then
             echo "Testing user-api..."
-            ./gradlew :application:user-api:test
+            run_tests_if_exist "application:user-api"
           fi
           
-          # 전체 테스트가 빠르게 실행되는 경우 전체 실행
+          # 전체 테스트가 빠르게 실행되는 경우 - 테스트 파일이 있는 모듈만 실행
           if [ $(echo "$changed_files" | wc -l) -lt 5 ]; then
-            echo "Running full test suite for small changes..."
-            ./gradlew test
+            echo "Running test suite for small changes..."
+            # 모든 모듈을 확인하고 테스트가 있는 것만 실행
+            for module in common:common-core common:common-web common:common-security common:common-cache domain:user-domain domain:product-domain domain:order-domain infrastructure:data-access infrastructure:cache-infrastructure application:user-api application:batch-app; do
+              run_tests_if_exist "$module"
+            done
           fi
 
   # 문서 변경 검증
