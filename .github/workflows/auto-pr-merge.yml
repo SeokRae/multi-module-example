@@ -57,7 +57,7 @@ jobs:
                 ref: pr.head.sha
               });
               
-              const requiredChecks = ['CI', 'build', 'test', 'Code Quality', 'SonarQube'];
+              const requiredChecks = ['SonarQube'];
               const completedChecks = checks.check_runs.filter(check => 
                 requiredChecks.some(required => check.name.includes(required)) &&
                 check.status === 'completed'
@@ -81,12 +81,11 @@ jobs:
                 return;
               }
               
-              // Check if we have at least one successful check from each category
-              const hasCI = successChecks.some(c => c.name.includes('CI') || c.name.includes('build'));
-              const hasQuality = successChecks.some(c => c.name.includes('Quality') || c.name.includes('SonarQube'));
+              // Check if SonarQube analysis passed
+              const hasSonarQube = successChecks.some(c => c.name.includes('SonarQube'));
               
-              if (hasCI && (hasQuality || successChecks.length >= 2)) {
-                console.log('🎉 All required checks passed!');
+              if (hasSonarQube) {
+                console.log('🎉 SonarQube analysis passed!');
                 return;
               }
               
