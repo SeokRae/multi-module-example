@@ -60,4 +60,8 @@ public class UserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return active;
     }
+    
+    public boolean hasRole(String roleName) {
+        return role.name().equals(roleName);
+    }
 }

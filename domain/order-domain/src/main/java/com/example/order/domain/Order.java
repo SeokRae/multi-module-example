@@ -27,6 +27,7 @@ public class Order {
     private Long userId;
     
     @NotEmpty(message = "주문 상품이 없습니다")
+    @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
     
     @NotNull(message = "총 금액은 필수입니다")
