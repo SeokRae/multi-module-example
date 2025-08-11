@@ -33,29 +33,61 @@ Resource not accessible by integration
 
 **해결 방법:**
 ```yaml
-# 권한 추가
-permissions:
-  contents: read
-  pull-requests: write  # PR 검증을 위해 필요
-  checks: write        # 체크 상태 업데이트를 위해 필요
-```
-
-### 3. Security Scan 권한 오류
-**에러 메시지:**
-```
-security-events: write permission required
-```
-
-**원인:**
-- SARIF 파일을 GitHub Security 탭에 업로드하려면 특별한 권한 필요
-
-**해결 방법:**
-```yaml
-security-scan:
+# PR 검증 작업에 권한 추가
+pr-validation:
+  name: Validate PR
+  runs-on: ubuntu-latest
   permissions:
-    actions: read
     contents: read
-    security-events: write  # SARIF 업로드를 위해 필요
+    pull-requests: write  # PR 제목 검증을 위해 필요 
+    checks: write        # 체크 상태 업데이트를 위해 필요
+  steps:
+    - name: Validate PR title
+      uses: amannn/action-semantic-pull-request@v5
+```
+
+### 3. 코드 품질/보안 분석: SonarQube 도입
+**문제:**
+- GitHub Security Scan(SARIF)은 주로 Enterprise/Organization 용도
+- 개인 리포지토리에는 더 포괄적인 분석 도구가 필요
+
+**해결 방법: SonarQube 사용**
+```yaml
+# .github/workflows/sonarqube.yml
+name: SonarQube Code Analysis
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build and analyze with SonarQube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info
+```
+
+**Gradle 설정:**
+```gradle
+plugins {
+    id 'org.sonarqube' version '4.4.1.3373'
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "your-project-key"
+        property "sonar.organization", "your-org"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
 ```
 
 ### 4. Checkout 설정 부족

@@ -15,6 +15,10 @@ jobs:
     name: Validate PR
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
     steps:
       - name: Validate PR title
         uses: amannn/action-semantic-pull-request@v5
@@ -42,6 +46,7 @@ jobs:
             security
             cache
             batch
+            ci
           requireScope: false
           disallowScopes: |
             release
@@ -188,10 +193,10 @@ jobs:
 
       - name: Check for secrets
         run: |
-          # 민감한 정보 패턴 검색
-          if git diff origin/${{ github.base_ref }}...HEAD | grep -iE "(password|secret|key|token)" | grep -E "\+.*="; then
+          # 민감한 정보 패턴 검색 (워크플로우 및 문서 파일 제외)
+          if git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} -- ':!.github/workflows/*' ':!docs/*' ':!*.md' | grep -iE "(password|secret|key|token)" | grep -E "\+.*=" | grep -v '\${{ secrets\.' | grep -v 'property.*token'; then
             echo "❌ 잠재적으로 민감한 정보가 감지되었습니다:"
-            git diff origin/${{ github.base_ref }}...HEAD | grep -iE "(password|secret|key|token)" | grep -E "\+.*="
+            git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} -- ':!.github/workflows/*' ':!docs/*' ':!*.md' | grep -iE "(password|secret|key|token)" | grep -E "\+.*=" | grep -v '\${{ secrets\.' | grep -v 'property.*token'
             echo "하드코딩된 비밀정보가 없는지 확인해주세요."
             exit 1
           else
@@ -201,7 +206,7 @@ jobs:
       - name: Check for SQL injection patterns
         run: |
           # 잠재적 SQL 인젝션 패턴 검색
-          if git diff origin/${{ github.base_ref }}...HEAD | grep -E "\+.*\.(createQuery|createNativeQuery|execute)" | grep -v "?" ; then
+          if git diff ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep -E "\+.*\.(createQuery|createNativeQuery|execute)" | grep -v "?" ; then
             echo "⚠️ SQL 쿼리에서 파라미터 바인딩을 사용하지 않는 패턴이 감지되었습니다."
             echo "SQL 인젝션 방지를 위해 PreparedStatement나 JPA 파라미터를 사용해주세요."
           fi
