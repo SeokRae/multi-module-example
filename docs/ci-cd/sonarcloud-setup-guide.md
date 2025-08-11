@@ -12,15 +12,17 @@ SonarCloud는 퍼블릭 리포지토리에 무료로 제공되는 코드 품질 
 2. **GitHub 연동**: "Log in with GitHub" 클릭
 3. **권한 승인**: SonarCloud가 GitHub 리포지토리에 접근할 수 있도록 승인
 
-### 2단계: Organization 생성/선택
+### 2단계: Organization 설정
 
-1. **Organization 생성** (처음 사용하는 경우):
+SonarCloud에서 "Organization"은 프로젝트를 그룹화하는 단위입니다. 개인 계정도 하나의 Organization으로 취급됩니다.
+
+1. **개인 계정 사용** (권장):
+   - GitHub 로그인 시 자동으로 개인 Organization이 생성됨
+   - Organization key: 보통 GitHub 사용자명과 동일 (예: `seokrae`)
+
+2. **새 Organization 생성** (선택사항):
    - "Create an organization" 선택
-   - GitHub organization을 선택하거나 개인 계정 사용
-   - Organization key 설정 (예: `seokrae`)
-
-2. **기존 Organization 사용** (이미 있는 경우):
-   - 원하는 Organization 선택
+   - 팀이나 회사용으로 별도 Organization 생성
 
 ### 3단계: 프로젝트 생성
 
@@ -60,6 +62,23 @@ SonarCloud는 퍼블릭 리포지토리에 무료로 제공되는 코드 품질 
    - **Name**: `SONAR_TOKEN`
    - **Value**: 위에서 복사한 토큰 값
    - "Add secret" 클릭
+
+### 5-1단계: ⚠️ 중요 - Automatic Analysis 비활성화
+
+**GitHub Actions CI 분석과 충돌 방지를 위해 반드시 설정해야 합니다:**
+
+1. **SonarCloud 프로젝트 페이지 이동**
+2. **Administration → Analysis Method** 클릭
+3. **설정 변경**:
+   - ❌ **"Automatic Analysis"** → OFF (비활성화)
+   - ✅ **"CI-based Analysis"** → ON (활성화)
+4. **Save** 클릭
+
+**이 단계를 건너뛰면 다음 오류가 발생합니다:**
+```
+You are running CI analysis while Automatic Analysis is enabled. 
+Please consider disabling one or the other.
+```
 
 ### 6단계: build.gradle 설정 업데이트
 
