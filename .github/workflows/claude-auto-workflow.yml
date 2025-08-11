@@ -1,0 +1,211 @@
+name: Claude Code Auto Development Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      feature_name:
+        description: 'Feature name (e.g., cache-redis, batch-processing)'
+        required: true
+        type: string
+      description:
+        description: 'Detailed feature description'
+        required: true
+        type: string
+      phase_name:
+        description: 'Phase name (e.g., Phase Cache, Phase Batch)'
+        required: false
+        type: string
+        default: 'Feature Development'
+      
+  # Trigger on specific issue comments
+  issue_comment:
+    types: [created]
+
+jobs:
+  # Job 1: Create Issue and Branch (if triggered manually)
+  setup-development:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.create_issue.outputs.issue_number }}
+      branch_name: ${{ steps.create_branch.outputs.branch_name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create GitHub Issue
+        id: create_issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `${{ github.event.inputs.phase_name }}: ${{ github.event.inputs.feature_name }}`,
+              body: `## 🎯 자동 생성된 개발 이슈
+            
+            **기능 이름**: ${{ github.event.inputs.feature_name }}
+            **Phase**: ${{ github.event.inputs.phase_name }}
+            
+            ## 📋 구현 내용
+            ${{ github.event.inputs.description }}
+            
+            ## ✅ 체크리스트
+            - [ ] 코드 구현
+            - [ ] 테스트 작성  
+            - [ ] 문서화
+            - [ ] CI/CD 통과
+            - [ ] 코드 리뷰
+            - [ ] PR 머지
+            
+            ## 🤖 Claude Code Auto Workflow
+            이 이슈는 Claude Code 자동 개발 워크플로우에 의해 생성되었습니다.
+            
+            🚀 Generated with [Claude Code](https://claude.ai/code)
+            `,
+              labels: ['enhancement', 'claude-auto', 'in-progress']
+            });
+            
+            core.setOutput('issue_number', issue.data.number);
+            return issue.data.number;
+
+      - name: Create Feature Branch
+        id: create_branch
+        run: |
+          BRANCH_NAME="feature/${{ github.event.inputs.feature_name }}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          git config user.name "claude-code[bot]"
+          git config user.email "claude-code@anthropic.com"
+          
+          git checkout -b "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
+          
+          echo "✅ Created branch: $BRANCH_NAME"
+
+      - name: Comment on Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.create_issue.outputs.issue_number }},
+              body: `🌿 **피처 브랜치 생성 완료**
+              
+              브랜치: \`${{ steps.create_branch.outputs.branch_name }}\`
+              
+              Claude Code가 개발을 시작할 준비가 완료되었습니다! 🚀`
+            });
+
+  # Job 2: Claude Code Development Trigger
+  claude-development:
+    needs: setup-development
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Claude Code Development
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.setup-development.outputs.issue_number }},
+              body: `@claude-code 개발을 시작해주세요!
+              
+              **요청 사항**: ${{ github.event.inputs.description }}
+              **브랜치**: ${{ needs.setup-development.outputs.branch_name }}
+              
+              자동 개발 워크플로우를 실행해주세요. 🤖`
+            });
+
+  # Job 3: Auto-merge when ready (triggered by PR)
+  auto-merge-check:
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'claude-auto')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check CI Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha
+            });
+            
+            const failedChecks = checks.check_runs.filter(check => 
+              check.status === 'completed' && check.conclusion === 'failure'
+            );
+            
+            if (failedChecks.length > 0) {
+              core.setFailed(`❌ CI checks failed: ${failedChecks.map(c => c.name).join(', ')}`);
+            } else {
+              console.log('✅ All CI checks passed');
+            }
+
+      - name: Auto-approve PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              event: 'APPROVE',
+              body: '🤖 **Claude Code 자동 승인**\n\n모든 CI 검사가 통과했습니다. 자동으로 승인합니다!'
+            });
+
+      - name: Auto-merge PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              merge_method: 'squash',
+              commit_title: `🤖 Auto-merge: ${context.payload.pull_request.title}`,
+              commit_message: `Automatically merged by Claude Code workflow\n\n${context.payload.pull_request.body}`
+            });
+
+  # Job 4: Cleanup and Notification
+  workflow-complete:
+    needs: [setup-development, claude-development]
+    if: always() && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Workflow Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## 🤖 Claude Code 자동 개발 워크플로우 실행됨
+            
+            **기능**: ${{ github.event.inputs.feature_name }}
+            **Phase**: ${{ github.event.inputs.phase_name }}
+            **이슈**: #${{ needs.setup-development.outputs.issue_number }}
+            **브랜치**: ${{ needs.setup-development.outputs.branch_name }}
+            
+            ### 다음 단계
+            1. ✅ GitHub 이슈 생성
+            2. ✅ 피처 브랜치 생성
+            3. 🔄 Claude Code 개발 대기 중...
+            
+            Claude Code가 자동으로 개발을 진행할 예정입니다.`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ needs.setup-development.outputs.issue_number }},
+              body: summary
+            });

@@ -1,0 +1,221 @@
+name: Auto PR Review and Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  # Check if this is a Claude Code auto-generated PR
+  check-auto-pr:
+    if: contains(github.event.pull_request.title, '🤖') || contains(github.event.pull_request.body, 'Claude Code')
+    runs-on: ubuntu-latest
+    outputs:
+      is_auto_pr: ${{ steps.check.outputs.is_auto }}
+    
+    steps:
+      - name: Check if Auto PR
+        id: check
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" == *"🤖"* ]] || \
+             [[ "${{ github.event.pull_request.body }}" == *"Claude Code"* ]] || \
+             [[ "${{ github.event.pull_request.body }}" == *"Generated with"* ]]; then
+            echo "is_auto=true" >> $GITHUB_OUTPUT
+            echo "✅ Detected Claude Code auto-generated PR"
+          else
+            echo "is_auto=false" >> $GITHUB_OUTPUT
+            echo "❌ Not a Claude Code auto PR"
+          fi
+
+  # Wait for all required checks to complete
+  wait-for-checks:
+    needs: check-auto-pr
+    if: needs.check-auto-pr.outputs.is_auto_pr == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Wait for CI/CD checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const maxWaitTime = 25 * 60 * 1000; // 25 minutes
+            const pollInterval = 30 * 1000; // 30 seconds
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number
+              });
+              
+              // Get all check runs for the head SHA
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha
+              });
+              
+              const requiredChecks = ['CI', 'build', 'test', 'Code Quality Checks'];
+              const completedChecks = checks.check_runs.filter(check => 
+                requiredChecks.some(required => check.name.includes(required)) &&
+                check.status === 'completed'
+              );
+              
+              const failedChecks = completedChecks.filter(check => 
+                check.conclusion === 'failure' || check.conclusion === 'cancelled'
+              );
+              
+              const successChecks = completedChecks.filter(check => 
+                check.conclusion === 'success'
+              );
+              
+              console.log(`✅ Completed checks: ${completedChecks.length}`);
+              console.log(`✅ Successful checks: ${successChecks.length}`);
+              console.log(`❌ Failed checks: ${failedChecks.length}`);
+              
+              if (failedChecks.length > 0) {
+                const failedNames = failedChecks.map(c => c.name).join(', ');
+                core.setFailed(`❌ CI checks failed: ${failedNames}`);
+                return;
+              }
+              
+              // Check if we have at least one successful check from each category
+              const hasCI = successChecks.some(c => c.name.includes('CI') || c.name.includes('build'));
+              const hasQuality = successChecks.some(c => c.name.includes('Quality') || c.name.includes('SonarCloud'));
+              
+              if (hasCI && (hasQuality || successChecks.length >= 2)) {
+                console.log('🎉 All required checks passed!');
+                return;
+              }
+              
+              console.log('⏳ Waiting for more checks to complete...');
+              await new Promise(resolve => setTimeout(resolve, pollInterval));
+            }
+            
+            core.setFailed('⏰ Timeout waiting for CI checks to complete');
+
+  # Auto-approve and merge the PR
+  auto-approve-merge:
+    needs: [check-auto-pr, wait-for-checks]
+    if: needs.check-auto-pr.outputs.is_auto_pr == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Auto-approve PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              event: 'APPROVE',
+              body: `🤖 **자동 승인**
+              
+              Claude Code가 생성한 PR로 모든 CI/CD 검사가 통과했습니다.
+              
+              ✅ 빌드 성공
+              ✅ 테스트 통과
+              ✅ 코드 품질 검사 통과
+              
+              자동으로 승인하고 머지합니다! 🚀`
+            });
+
+      - name: Enable auto-merge
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                merge_method: 'squash',
+                commit_title: `🤖 ${context.payload.pull_request.title}`,
+                commit_message: `${context.payload.pull_request.body}\n\n🤖 Automatically merged by Claude Code workflow`
+              });
+              
+              console.log('🎉 PR successfully merged!');
+            } catch (error) {
+              console.error('❌ Failed to merge PR:', error.message);
+              
+              // Comment on PR about the merge failure
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `❌ **자동 머지 실패**
+                
+                오류: ${error.message}
+                
+                수동으로 머지해주세요.`
+              });
+              
+              core.setFailed(`Failed to merge PR: ${error.message}`);
+            }
+
+      - name: Delete feature branch
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${context.payload.pull_request.head.ref}`
+              });
+              console.log(`🗑️ Deleted feature branch: ${context.payload.pull_request.head.ref}`);
+            } catch (error) {
+              console.log(`⚠️ Could not delete branch: ${error.message}`);
+            }
+
+      - name: Success notification
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Find related issue by searching for the PR title or branch name
+            const prTitle = context.payload.pull_request.title;
+            const branchName = context.payload.pull_request.head.ref;
+            
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'claude-auto'
+            });
+            
+            // Find matching issue
+            const relatedIssue = issues.find(issue => 
+              issue.title.toLowerCase().includes(prTitle.toLowerCase().replace('🤖', '').trim()) ||
+              issue.body.includes(branchName)
+            );
+            
+            if (relatedIssue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: relatedIssue.number,
+                body: `🎉 **개발 완료!**
+                
+                PR #${context.payload.pull_request.number}이 성공적으로 머지되었습니다.
+                
+                ✅ 모든 CI/CD 검사 통과
+                ✅ 자동 리뷰 및 승인
+                ✅ 코드 머지 완료
+                ✅ 피처 브랜치 정리
+                
+                **Claude Code 자동 개발 워크플로우 완료** 🚀`
+              });
+              
+              // Close the issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: relatedIssue.number,
+                state: 'closed'
+              });
+            }
