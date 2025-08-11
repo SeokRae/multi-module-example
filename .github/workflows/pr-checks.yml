@@ -71,6 +71,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -94,8 +96,8 @@ jobs:
 
       - name: Run affected module tests
         run: |
-          # 변경된 파일을 기반으로 영향받는 모듈 감지
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          # 변경된 파일을 기반으로 영향받는 모듈 감지 (GitHub 컨텍스트 사용)
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }})
           echo "Changed files: $changed_files"
           
           # 테스트가 있는 모듈만 실행하는 함수
@@ -147,10 +149,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
       - name: Check for README updates
         run: |
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }})
           
           # API 변경시 문서 업데이트 확인
           if echo "$changed_files" | grep -q "Controller.java\|@RestController"; then
@@ -162,7 +166,7 @@ jobs:
 
       - name: Check for breaking changes
         run: |
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }})
           
           # 잠재적 Breaking Change 감지
           if echo "$changed_files" | grep -q "build.gradle\|application.yml\|Entity.java"; then
@@ -179,6 +183,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
       - name: Check for secrets
         run: |
@@ -208,6 +214,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
