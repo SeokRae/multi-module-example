@@ -1,0 +1,120 @@
+@startuml GitFlowToolWorkflow
+!theme plain
+
+participant "Developer" as Dev
+participant "Git Flow Tool" as Tool
+participant "Feature Branch\n(feature/*)" as Feature
+participant "Develop Branch" as Develop
+participant "Release Branch\n(release/*)" as Release
+participant "Main Branch\n(main/master)" as Main
+participant "Hotfix Branch\n(hotfix/*)" as Hotfix
+
+title Git Flow 도구 방식 - git-flow 도구 사용
+
+== 초기 설정 (자동화) ==
+Dev -> Tool: 1. brew install git-flow-avh
+Tool -> Tool: 2. 도구 설치 완료
+Dev -> Tool: 3. git flow init -d
+Tool -> Main: 자동 main 브랜치 확인
+Tool -> Develop: 자동 develop 브랜치 생성/설정
+Tool -> Tool: 브랜치 규칙 및 접두사 자동 설정
+Note over Tool: **1개 명령어로 완료**\n자동 브랜치 구조 생성\n표준 규칙 적용
+
+== 기능 개발 워크플로우 (자동화) ==
+group Feature 개발 - 4단계 과정
+    Dev -> Tool: 4. git flow feature start user-auth
+    Tool -> Develop: 자동 develop 브랜치 전환
+    Tool -> Develop: 자동 develop 최신 상태 확인
+    Tool -> Feature: 자동 feature/user-auth 브랜치 생성
+    Tool -> Feature: 자동 브랜치 전환
+    Note over Tool: **1개 명령어 = 4개 Git 명령어**\n안전성 검증 자동화
+    
+    activate Feature
+    Dev -> Feature: 5. 코드 작성 및 개발
+    Dev -> Feature: 6. git add . && git commit -m "feat: implement feature"
+    Note right of Feature: **개발 과정**: 표준 Git 명령어 동일\n브랜치 관리는 자동화
+    
+    Dev -> Tool: 7. git flow feature finish user-auth
+    Tool -> Develop: 자동 develop 브랜치 전환
+    Tool -> Develop: 자동 develop 최신 상태 확인
+    Tool -> Develop: 자동 feature 브랜치 병합 (--no-ff)
+    Tool -> Feature: 자동 feature 브랜치 삭제
+    deactivate Feature
+    destroy Feature
+    Note over Tool: **1개 명령어로 병합 완료**\n--no-ff 자동 적용\n브랜치 안전 삭제
+end group
+
+== 릴리스 워크플로우 (자동화) ==
+group Release 준비 - 7단계 과정
+    Dev -> Tool: 8. git flow release start v1.0.0
+    Tool -> Develop: 자동 develop에서 분기
+    Tool -> Release: 자동 release/v1.0.0 생성
+    Tool -> Release: 자동 브랜치 전환
+    Note over Tool: **릴리스 시작**: 1개 명령어로 완료
+    
+    activate Release
+    Dev -> Release: 9. 버전 업데이트 작업
+    Dev -> Release: 10. git add . && git commit -m "chore: bump version"
+    
+    Dev -> Tool: 11. git flow release finish v1.0.0
+    Tool -> Main: 자동 main 브랜치로 전환
+    Tool -> Main: 자동 release 브랜치 병합 (--no-ff)
+    Tool -> Main: 자동 릴리스 태그 생성 (v1.0.0)
+    Tool -> Develop: 자동 develop 브랜치로 전환
+    Tool -> Develop: 자동 release 브랜치 병합 (--no-ff)
+    Tool -> Release: 자동 release 브랜치 삭제
+    deactivate Release
+    destroy Release
+    Note over Tool: **1개 명령어로 완료**\n양방향 병합 자동화\n태그 자동 생성\n브랜치 안전 삭제
+    
+    Dev -> Main: 12. git push origin main
+    Dev -> Develop: 13. git push origin develop
+    Dev -> Main: 14. git push origin --tags
+    Note over Dev: **원격 동기화만 수동**\n핵심 워크플로우는 완전 자동화
+end group
+
+== 핫픽스 워크플로우 (자동화) ==
+group Hotfix 수정 - 5단계 과정
+    Note over Main: 🚨 프로덕션 이슈 발생!
+    
+    Dev -> Tool: 15. git flow hotfix start v1.0.1
+    Tool -> Main: 자동 main에서 분기
+    Tool -> Hotfix: 자동 hotfix/v1.0.1 생성
+    Tool -> Hotfix: 자동 브랜치 전환
+    Note over Tool: **핫픽스 시작**: 즉시 시작 가능
+    
+    activate Hotfix
+    Dev -> Hotfix: 16. 긴급 버그 수정
+    Dev -> Hotfix: 17. git add . && git commit -m "fix: critical bug"
+    
+    Dev -> Tool: 18. git flow hotfix finish v1.0.1
+    Tool -> Main: 자동 main 브랜치로 전환
+    Tool -> Main: 자동 hotfix 브랜치 병합 (--no-ff)
+    Tool -> Main: 자동 핫픽스 태그 생성 (v1.0.1)
+    Tool -> Develop: 자동 develop 브랜치로 전환
+    Tool -> Develop: 자동 hotfix 브랜치 병합 (--no-ff)
+    Tool -> Hotfix: 자동 hotfix 브랜치 삭제
+    deactivate Hotfix
+    destroy Hotfix
+    Note over Tool: **긴급상황도 1개 명령어**\n실수 위험 최소화
+    
+    Dev -> Main: 19. git push origin main
+    Dev -> Develop: 20. git push origin develop
+    Dev -> Main: 21. git push origin --tags
+end group
+
+== Git Flow 도구의 고급 기능 ==
+group 추가 자동화 기능
+    Note over Tool: **자동 검증**\n• 올바른 브랜치에서 작업하는지 확인\n• 미완료 변경사항 경고\n• 충돌 상황 자동 감지
+    
+    Note over Tool: **브랜치 추적**\n• git flow feature publish [name]\n• git flow feature track [name]\n• 원격 브랜치 자동 관리
+    
+    Note over Tool: **상태 확인**\n• git flow feature list\n• git flow release list\n• git flow hotfix list
+end group
+
+== 도구 방식의 특징 ==
+Note over Tool: **장점**\n• 실수 위험 최소화\n• 일관된 워크플로우\n• 빠른 실행 속도\n• 표준 규칙 자동 적용
+Note over Main: **자동화 수준**\n• 브랜치 생성/삭제\n• 병합 옵션 적용\n• 태그 생성\n• 안전성 검증
+Note over Develop: **총 명령어 수**\n• Feature: 4단계\n• Release: 7단계\n• Hotfix: 5단계\n• 평균 실행시간: 30초-1분
+
+@enduml

@@ -1,0 +1,119 @@
+@startuml GitFlowManualWorkflow
+!theme plain
+
+participant "Developer" as Dev
+participant "Feature Branch\n(feature/*)" as Feature
+participant "Develop Branch" as Develop
+participant "Release Branch\n(release/*)" as Release
+participant "Main Branch\n(main/master)" as Main
+participant "Hotfix Branch\n(hotfix/*)" as Hotfix
+
+title Git Flow 수동 방식 - 표준 Git 명령어 사용
+
+== 초기 설정 (수동) ==
+Dev -> Main: 1. git checkout main
+Dev -> Main: 2. git pull origin main
+Dev -> Develop: 3. git checkout -b develop
+Dev -> Develop: 4. git push -u origin develop
+Note over Dev: **4단계 필요**\n모든 과정을 수동으로 실행
+
+== 기능 개발 워크플로우 (수동) ==
+group Feature 개발 - 13단계 과정
+    Dev -> Develop: 5. git checkout develop
+    Dev -> Develop: 6. git pull origin develop
+    Dev -> Feature: 7. git checkout -b feature/user-auth
+    Note over Feature: **브랜치 생성**: 3개 명령어 필요
+    
+    activate Feature
+    Dev -> Feature: 8. 코드 작성 및 개발
+    Dev -> Feature: 9. git add .
+    Dev -> Feature: 10. git commit -m "feat: implement feature"
+    Dev -> Feature: 11. git push -u origin feature/user-auth
+    Note right of Feature: **개발 과정**: 표준 Git 명령어\n실수 가능성 높음
+    
+    Dev -> Develop: 12. git checkout develop
+    Dev -> Develop: 13. git pull origin develop
+    Feature -> Develop: 14. git merge --no-ff feature/user-auth
+    Note over Feature, Develop: **병합**: --no-ff 옵션 수동 지정\n실수 시 히스토리 손상 위험
+    deactivate Feature
+    
+    Dev -> Develop: 15. git push origin develop
+    Dev -> Feature: 16. git branch -d feature/user-auth
+    Dev -> Feature: 17. git push origin --delete feature/user-auth
+    destroy Feature
+    Note over Dev: **정리**: 원격/로컬 브랜치 수동 삭제\n실수로 병합 전 삭제 위험
+end group
+
+== 릴리스 워크플로우 (수동) ==
+group Release 준비 - 15단계 과정
+    Dev -> Develop: 18. git checkout develop
+    Dev -> Develop: 19. git pull origin develop
+    Dev -> Release: 20. git checkout -b release/v1.0.0
+    Dev -> Release: 21. git push -u origin release/v1.0.0
+    Note over Release: **릴리스 시작**: 복잡한 준비 과정
+    
+    activate Release
+    Dev -> Release: 22. 버전 업데이트 작업
+    Dev -> Release: 23. git add .
+    Dev -> Release: 24. git commit -m "chore: bump version"
+    
+    Dev -> Main: 25. git checkout main
+    Dev -> Main: 26. git pull origin main
+    Release -> Main: 27. git merge --no-ff release/v1.0.0
+    Dev -> Main: 28. git push origin main
+    Dev -> Main: 29. git tag -a v1.0.0 -m "Release v1.0.0"
+    Dev -> Main: 30. git push origin v1.0.0
+    Note over Main: **main 병합**: 수동 태그 생성\n태그 규칙 일관성 유지 어려움
+    
+    Dev -> Develop: 31. git checkout develop
+    Dev -> Develop: 32. git pull origin develop
+    Release -> Develop: 33. git merge --no-ff release/v1.0.0
+    Dev -> Develop: 34. git push origin develop
+    deactivate Release
+    
+    Dev -> Release: 35. git branch -d release/v1.0.0
+    Dev -> Release: 36. git push origin --delete release/v1.0.0
+    destroy Release
+    Note over Dev: **15단계 완료**\n각 단계에서 실수 가능
+end group
+
+== 핫픽스 워크플로우 (수동) ==
+group Hotfix 수정 - 15단계 과정
+    Note over Main: 🚨 프로덕션 이슈 발생!
+    
+    Dev -> Main: 37. git checkout main
+    Dev -> Main: 38. git pull origin main
+    Dev -> Hotfix: 39. git checkout -b hotfix/v1.0.1
+    Dev -> Hotfix: 40. git push -u origin hotfix/v1.0.1
+    Note over Hotfix: **핫픽스 시작**: main에서 수동 분기
+    
+    activate Hotfix
+    Dev -> Hotfix: 41. 긴급 버그 수정
+    Dev -> Hotfix: 42. git add .
+    Dev -> Hotfix: 43. git commit -m "fix: critical bug"
+    
+    Dev -> Main: 44. git checkout main
+    Dev -> Main: 45. git pull origin main
+    Hotfix -> Main: 46. git merge --no-ff hotfix/v1.0.1
+    Dev -> Main: 47. git push origin main
+    Dev -> Main: 48. git tag -a v1.0.1 -m "Hotfix v1.0.1"
+    Dev -> Main: 49. git push origin v1.0.1
+    
+    Dev -> Develop: 50. git checkout develop
+    Dev -> Develop: 51. git pull origin develop
+    Hotfix -> Develop: 52. git merge --no-ff hotfix/v1.0.1
+    Dev -> Develop: 53. git push origin develop
+    deactivate Hotfix
+    
+    Dev -> Hotfix: 54. git branch -d hotfix/v1.0.1
+    Dev -> Hotfix: 55. git push origin --delete hotfix/v1.0.1
+    destroy Hotfix
+    Note over Dev: **긴급상황에 15단계**\n실수 위험 최대
+end group
+
+== 수동 방식의 특징 ==
+Note over Dev: **장점**\n• 완전한 제어 가능\n• Git 명령어 깊이 이해\n• 도구 의존성 없음\n• 커스터마이징 자유로움
+Note over Main: **단점**\n• 실수 위험 높음\n• 명령어 복잡성\n• 일관성 보장 어려움\n• 학습 곡선 가파름
+Note over Develop: **총 명령어 수**\n• Feature: 13단계\n• Release: 15단계\n• Hotfix: 15단계\n• 평균 실행시간: 2-3분
+
+@enduml

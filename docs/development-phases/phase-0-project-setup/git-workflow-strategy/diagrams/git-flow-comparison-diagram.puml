@@ -1,0 +1,70 @@
+@startuml GitFlowComparison
+!theme plain
+
+participant "개발자" as Dev
+participant "수동 방식\n(Standard Git)" as Manual
+participant "도구 방식\n(git-flow)" as Tool
+participant "Feature 브랜치" as Feature
+participant "Develop 브랜치" as Develop
+
+title Git Flow 방식 비교 - 기능 개발 워크플로우
+
+== 기능 개발 시작 ==
+
+group 수동 방식 - 3단계
+    Dev -> Manual: 기능 개발 요청
+    Manual -> Develop: git checkout develop
+    Manual -> Develop: git pull origin develop
+    Manual -> Feature: git checkout -b feature/user-auth
+    Note over Manual: **3개 명령어 필요**\n각 단계별 수동 실행\n실수 가능성 존재
+end
+
+|||
+
+group 도구 방식 - 1단계
+    Dev -> Tool: 동일한 기능 개발 요청
+    Tool -> Feature: git flow feature start user-auth
+    Note over Tool: **1개 명령어로 완료**\n자동 브랜치 전환\n안전성 검증 포함
+    Note right of Tool: 내부적으로 3단계 자동 실행:\n1. develop 브랜치 전환\n2. 최신 상태 확인\n3. feature 브랜치 생성
+end
+
+== 개발 과정 ==
+
+group 개발 작업 (동일)
+    activate Feature
+    Dev -> Feature: 코드 작성
+    Feature -> Feature: git add .
+    Feature -> Feature: git commit -m "feat: implement feature"
+    Note over Feature: **개발 과정은 동일**\n표준 Git 명령어 사용
+end
+
+== 기능 완료 및 병합 ==
+
+group 수동 방식 - 7단계
+    Dev -> Manual: 기능 완료 알림
+    Manual -> Develop: git checkout develop
+    Manual -> Develop: git pull origin develop
+    Manual -> Develop: git merge --no-ff feature/user-auth
+    Manual -> Develop: git push origin develop
+    Manual -> Feature: git branch -d feature/user-auth
+    Manual -> Feature: git push origin --delete feature/user-auth
+    deactivate Feature
+    Note over Manual: **7개 명령어 필요**\n--no-ff 옵션 수동 지정\n브랜치 삭제 수동 관리\n실수 시 히스토리 손상
+end
+
+|||
+
+group 도구 방식 - 1단계
+    Dev -> Tool: 동일한 기능 완료 알림
+    Tool -> Develop: git flow feature finish user-auth
+    deactivate Feature
+    Note over Tool: **1개 명령어로 완료**\n자동 병합 및 브랜치 삭제\n일관된 히스토리 보장
+    Note right of Tool: 내부적으로 7단계 자동 실행:\n1. develop 브랜치 전환\n2. 최신 상태 확인\n3. --no-ff 옵션으로 병합\n4. feature 브랜치 삭제\n5. 원격 브랜치 정리
+end
+
+== 결과 비교 ==
+
+Note over Manual: **수동 방식 총계**\n• 총 명령어: 10개\n• 실행 시간: 2-3분\n• 실수 위험: 높음\n• 학습 곡선: 가파름\n• 유연성: 최고
+Note over Tool: **도구 방식 총계**\n• 총 명령어: 2개\n• 실행 시간: 30초\n• 실수 위험: 낮음\n• 학습 곡선: 완만\n• 표준화: 최고
+
+@enduml
