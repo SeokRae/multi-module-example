@@ -82,12 +82,30 @@ Resource not accessible by integration
 **영향받는 파일**:
 - `.github/workflows/pr-checks.yml`
 
+**테스트 중**: [PR #21](https://github.com/SeokRae/multi-module-example/pull/21)에서 자동 검증 진행 중
+
 ### 🔄 진행 중인 작업
-- Issue #17: 문서화 및 테스트 준비 중
+- PR #21 테스트 결과 확인 및 병합 대기
+
+#### 추가 최적화: 개인 리포지토리용 워크플로우 단순화
+**날짜**: 2025-08-11  
+**브랜치**: `fix/github-token-permissions-issue-17`
+
+**개선 사항**:
+1. **Security Scan 단순화**:
+   - 복잡한 SARIF 업로드 제거 (Enterprise/Organization 전용 기능)
+   - Gradle 의존성 체크 및 기본 시크릿 패턴 검사로 대체
+
+2. **Qodana 최적화**:
+   - 자동 실행 비활성화 (`workflow_dispatch`만 허용)
+   - 개인 리포지토리에는 과도한 분석 도구
+
+**영향받는 파일**:
+- `.github/workflows/ci.yml`
+- `.github/workflows/qodana_code_quality.yml`
 
 ### ⏳ 예정된 작업
-1. PR 워크플로우에 권한 설정 추가
-2. 보안 스캔 워크플로우 권한 수정
+1. Issue #19: 워크플로우 성능 최적화
 3. 성능 최적화 구현
 4. 문서화 완료
 

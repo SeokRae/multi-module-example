@@ -6,10 +6,11 @@
 name: Qodana
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-      - main
+  # Qodana는 수동 실행만 허용 (개인 리포지토리에는 과도함)
+  # pull_request:
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   qodana:
