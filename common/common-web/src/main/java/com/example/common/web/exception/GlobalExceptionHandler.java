@@ -38,6 +38,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
     
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Invalid argument: {}", e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("INVALID_ARGUMENT", e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+    
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException e) {
+        log.warn("Invalid state: {}", e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("INVALID_STATE", e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception e) {
         log.error("Unexpected exception occurred", e);
