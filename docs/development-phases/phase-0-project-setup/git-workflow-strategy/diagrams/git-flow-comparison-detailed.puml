@@ -1,0 +1,146 @@
+@startuml GitFlowDetailedComparison
+!theme plain
+
+title Git Flow 방식 상세 비교 - 전체 워크플로우
+
+== 초기 설정 비교 ==
+
+participant "개발자" as Dev
+participant "수동 방식" as Manual
+participant "도구 방식" as Tool
+
+group 저장소 초기화
+    Dev -> Manual: 프로젝트 설정 요청
+    Manual -> Manual: git checkout main
+    Manual -> Manual: git pull origin main
+    Manual -> Manual: git checkout -b develop
+    Manual -> Manual: git push -u origin develop
+    Note over Manual: **4단계**: 수동 브랜치 생성\n실수 가능: 브랜치명 오타\n시간: 1-2분
+    
+    |||
+    
+    Dev -> Tool: 동일한 설정 요청
+    Tool -> Tool: git flow init -d
+    Note over Tool: **1단계**: 자동 초기화\n표준 브랜치 구조 생성\n시간: 10초
+end
+
+== 기능 개발 비교 ==
+
+participant "Feature" as F
+participant "Develop" as D
+
+group Feature 브랜치 생성
+    Manual -> D: git checkout develop
+    Manual -> D: git pull origin develop
+    Manual -> F: git checkout -b feature/payment
+    Note over Manual: **3단계**\n브랜치명 규칙 수동 관리
+    
+    |||
+    
+    Tool -> F: git flow feature start payment
+    Note over Tool: **1단계**\nfeature/ 접두사 자동 적용
+end
+
+group 개발 및 커밋
+    Note over F: **동일한 과정**\n코드 작성\ngit add .\ngit commit -m "..."
+end
+
+group Feature 브랜치 완료
+    Manual -> D: git checkout develop
+    Manual -> D: git pull origin develop
+    Manual -> D: git merge --no-ff feature/payment
+    Manual -> D: git push origin develop
+    Manual -> F: git branch -d feature/payment
+    Manual -> F: git push origin --delete feature/payment
+    Note over Manual: **6단계**\n각 단계별 실수 위험\n--no-ff 옵션 누락 위험
+    
+    |||
+    
+    Tool -> D: git flow feature finish payment
+    Tool -> D: git push origin develop
+    Note over Tool: **2단계**\n병합 옵션 자동 적용\n브랜치 안전 삭제
+end
+
+== 릴리스 워크플로우 비교 ==
+
+participant "Release" as R
+participant "Main" as M
+
+group 릴리스 시작
+    Manual -> D: git checkout develop
+    Manual -> D: git pull origin develop
+    Manual -> R: git checkout -b release/v1.0.0
+    Manual -> R: git push -u origin release/v1.0.0
+    Note over Manual: **4단계**\n릴리스 브랜치 수동 생성
+    
+    |||
+    
+    Tool -> R: git flow release start v1.0.0
+    Note over Tool: **1단계**\nrelease/ 접두사 자동 적용
+end
+
+group 릴리스 완료
+    Manual -> M: git checkout main
+    Manual -> M: git pull origin main
+    Manual -> M: git merge --no-ff release/v1.0.0
+    Manual -> M: git push origin main
+    Manual -> M: git tag -a v1.0.0 -m "Release v1.0.0"
+    Manual -> M: git push origin v1.0.0
+    Manual -> D: git checkout develop
+    Manual -> D: git pull origin develop
+    Manual -> D: git merge --no-ff release/v1.0.0
+    Manual -> D: git push origin develop
+    Manual -> R: git branch -d release/v1.0.0
+    Manual -> R: git push origin --delete release/v1.0.0
+    Note over Manual: **11단계**\n복잡한 양방향 병합\n태그 생성 규칙 수동 관리
+    
+    |||
+    
+    Tool -> M: git flow release finish v1.0.0
+    Tool -> M: git push origin main
+    Tool -> D: git push origin develop
+    Tool -> M: git push origin --tags
+    Note over Tool: **4단계**\n자동 양방향 병합\n표준 태그 자동 생성
+end
+
+== 핫픽스 워크플로우 비교 ==
+
+participant "Hotfix" as H
+
+group 긴급 수정 처리
+    Manual -> M: git checkout main
+    Manual -> M: git pull origin main
+    Manual -> H: git checkout -b hotfix/v1.0.1
+    Manual -> H: 버그 수정 작업
+    Manual -> M: git checkout main
+    Manual -> M: git merge --no-ff hotfix/v1.0.1
+    Manual -> M: git push origin main
+    Manual -> M: git tag -a v1.0.1 -m "Hotfix v1.0.1"
+    Manual -> D: git checkout develop
+    Manual -> D: git merge --no-ff hotfix/v1.0.1
+    Manual -> D: git push origin develop
+    Manual -> H: git branch -d hotfix/v1.0.1
+    Note over Manual: **10단계**\n긴급 상황에서 복잡한 과정\n실수 위험 최대
+    
+    |||
+    
+    Tool -> H: git flow hotfix start v1.0.1
+    Tool -> H: 버그 수정 작업
+    Tool -> M: git flow hotfix finish v1.0.1
+    Tool -> M: git push origin main
+    Tool -> D: git push origin develop
+    Tool -> M: git push origin --tags
+    Note over Tool: **6단계**\n긴급 상황에서도 안정적\n실수 위험 최소화
+end
+
+== 종합 비교 결과 ==
+
+Note over Manual: **수동 방식 특성**\n\n**장점:**\n• 완전한 제어권\n• Git 명령어 깊이 이해\n• 커스터마이징 자유\n• 도구 의존성 없음\n\n**단점:**\n• 높은 실수 위험\n• 복잡한 명령어 조합\n• 일관성 보장 어려움\n• 긴 학습 시간\n\n**총 단계 수:**\n• Feature: 9단계\n• Release: 15단계\n• Hotfix: 10단계
+
+Note over Tool: **도구 방식 특성**\n\n**장점:**\n• 실수 위험 최소화\n• 일관된 워크플로우\n• 빠른 실행 속도\n• 쉬운 학습\n\n**단점:**\n• 도구 설치 필요\n• 제한된 커스터마이징\n• 도구 의존성\n• 추가 명령어 학습\n\n**총 단계 수:**\n• Feature: 3단계\n• Release: 4단계\n• Hotfix: 6단계
+
+== 권장 사항 ==
+
+Note over Dev: **프로젝트 특성별 추천**\n\n**도구 방식 추천:**\n• 팀 프로젝트\n• 빠른 개발 속도 필요\n• 표준 Git Flow 사용\n• 실수 방지 중요\n\n**수동 방식 추천:**\n• 개인 학습 목적\n• 고도 커스터마이징 필요\n• 제한된 환경\n• Git 전문성 향상 목적
+
+@enduml
