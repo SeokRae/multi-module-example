@@ -5,6 +5,12 @@ on:
     types: [opened, synchronize, reopened]
     branches: [main]
 
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+  actions: read
+
 jobs:
   # Check if this is a Claude Code auto-generated PR
   check-auto-pr:
@@ -38,6 +44,7 @@ jobs:
       - name: Wait for CI/CD checks
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const maxWaitTime = 25 * 60 * 1000; // 25 minutes
             const pollInterval = 30 * 1000; // 30 seconds
@@ -105,6 +112,7 @@ jobs:
       - name: Auto-approve PR
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
@@ -125,6 +133,7 @@ jobs:
       - name: Enable auto-merge
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             try {
               await github.rest.pulls.merge({
@@ -159,6 +168,7 @@ jobs:
         if: success()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             try {
               await github.rest.git.deleteRef({
@@ -175,6 +185,7 @@ jobs:
         if: success()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             // Find related issue by searching for the PR title or branch name
             const prTitle = context.payload.pull_request.title;
