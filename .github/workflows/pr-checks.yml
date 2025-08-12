@@ -85,19 +85,18 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run quick compilation check
-        run: ./gradlew compileJava compileTestJava
+      - name: Run quick compilation check (optimized)
+        run: ./gradlew compileJava compileTestJava --parallel --build-cache
 
       - name: Run affected module tests
         run: |
@@ -111,10 +110,10 @@ jobs:
             local module_path=$(echo "$module" | sed 's/:/\//g')
             
             if [ -d "$module_path/src/test" ] && [ "$(find $module_path/src/test -name '*.java' | wc -l)" -gt 0 ]; then
-              echo "Running tests for $module..."
-              ./gradlew :$module:test
+              echo "⚡ Running optimized tests for $module..."
+              ./gradlew :$module:test --parallel --build-cache
             else
-              echo "No tests found for $module, skipping..."
+              echo "⏭️ No tests found for $module, skipping..."
             fi
           }
           
@@ -139,8 +138,8 @@ jobs:
           
           # 전체 테스트가 빠르게 실행되는 경우 - 테스트 파일이 있는 모듈만 실행
           if [ $(echo "$changed_files" | wc -l) -lt 5 ]; then
-            echo "Running test suite for small changes..."
-            # 모든 모듈을 확인하고 테스트가 있는 것만 실행
+            echo "🚀 Running optimized test suite for small changes..."
+            # 모든 모듈을 확인하고 테스트가 있는 것만 병렬로 실행
             for module in common:common-core common:common-web common:common-security common:common-cache domain:user-domain domain:product-domain domain:order-domain infrastructure:data-access infrastructure:cache-infrastructure application:user-api application:batch-app; do
               run_tests_if_exist "$module"
             done
@@ -228,22 +227,21 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Check build performance
+      - name: Check build performance (optimized)
         run: |
-          echo "🚀 빌드 성능 측정 중..."
+          echo "🚀 최적화된 빌드 성능 측정 중..."
           start_time=$(date +%s)
-          ./gradlew build -x test --quiet
+          ./gradlew build -x test --quiet --parallel --build-cache
           end_time=$(date +%s)
           duration=$((end_time - start_time))
           

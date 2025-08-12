@@ -8,7 +8,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  GRADLE_OPTS: '-Dorg.gradle.daemon=false'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true'
 
 jobs:
   # Code Quality & Security Checks
@@ -29,21 +29,18 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run compilation check
-        run: ./gradlew compileJava compileTestJava
+      - name: Run compilation check with optimizations
+        run: ./gradlew compileJava compileTestJava --parallel --build-cache
 
   # Unit & Integration Tests
   test:
@@ -76,13 +73,12 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -93,15 +89,17 @@ jobs:
           module_path=$(echo "${{ matrix.module }}" | sed 's/:/\//g')
           if [ -d "$module_path/src/test" ] && [ "$(find $module_path/src/test -name '*.java' | wc -l)" -gt 0 ]; then
             echo "tests_exist=true" >> $GITHUB_OUTPUT
-            echo "Tests found in ${{ matrix.module }}"
+            echo "✅ Tests found in ${{ matrix.module }}"
           else
             echo "tests_exist=false" >> $GITHUB_OUTPUT
-            echo "No tests found in ${{ matrix.module }}, skipping test execution"
+            echo "⏭️ No tests found in ${{ matrix.module }}, skipping test execution"
           fi
 
       - name: Run tests for ${{ matrix.module }}
         if: steps.check-tests.outputs.tests_exist == 'true'
-        run: ./gradlew :${{ matrix.module }}:test
+        run: |
+          echo "🧪 Running tests for ${{ matrix.module }}..."
+          ./gradlew :${{ matrix.module }}:test --parallel --build-cache
 
       - name: Generate test report
         uses: dorny/test-reporter@v2
@@ -114,12 +112,13 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always() && matrix.module == 'application:user-api'
+        if: always() && steps.check-tests.outputs.tests_exist == 'true'
         with:
           name: test-results-${{ matrix.module }}
           path: |
             **/build/test-results/test/
             **/build/reports/tests/test/
+          retention-days: 7
 
   # Build Application
   build:
@@ -138,19 +137,20 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build -x test
+      - name: Build with Gradle (optimized)
+        run: |
+          echo "🚀 Starting optimized build..."
+          ./gradlew build -x test --parallel --build-cache
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -159,6 +159,7 @@ jobs:
           path: |
             application/user-api/build/libs/*.jar
             application/batch-app/build/libs/*.jar
+          retention-days: 7
 
   # Integration Tests
   integration-test:
@@ -200,24 +201,24 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run integration tests
+      - name: Run integration tests (optimized)
         run: |
+          echo "🔗 Running integration tests..."
           if ./gradlew tasks --all | grep -q "integrationTest"; then
-            ./gradlew integrationTest
+            ./gradlew integrationTest --parallel --build-cache
           else
-            echo "Integration tests not configured, running regular tests..."
-            ./gradlew test
+            echo "Integration tests not configured, running focused tests..."
+            ./gradlew test --parallel --build-cache
           fi
         env:
           SPRING_PROFILES_ACTIVE: test
