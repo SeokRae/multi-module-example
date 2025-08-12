@@ -12,4 +12,7 @@ dependencies {
     
     // Cache serialization
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    
+    // Test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
