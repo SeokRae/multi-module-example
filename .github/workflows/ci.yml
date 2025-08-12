@@ -30,11 +30,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle with enhanced caching
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
+          cache-disabled: false
           cache-read-only: false
           cache-write-only: false
           gradle-home-cache-cleanup: true
+          add-job-summary: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -74,11 +76,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle with enhanced caching
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
+          cache-disabled: false
           cache-read-only: false
           cache-write-only: false
           gradle-home-cache-cleanup: true
+          add-job-summary: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -138,11 +142,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle with enhanced caching
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
+          cache-disabled: false
           cache-read-only: false
           cache-write-only: false
           gradle-home-cache-cleanup: true
+          add-job-summary: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -202,11 +208,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle with enhanced caching
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
+          cache-disabled: false
           cache-read-only: false
           cache-write-only: false
           gradle-home-cache-cleanup: true
+          add-job-summary: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
