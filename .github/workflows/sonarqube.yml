@@ -15,7 +15,11 @@ jobs:
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

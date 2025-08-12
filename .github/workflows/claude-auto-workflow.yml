@@ -26,6 +26,10 @@ jobs:
   setup-development:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     outputs:
       issue_number: ${{ steps.create_issue.outputs.issue_number }}
       branch_name: ${{ steps.create_branch.outputs.branch_name }}
@@ -107,6 +111,9 @@ jobs:
     needs: setup-development
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     
     steps:
       - name: Trigger Claude Code Development
