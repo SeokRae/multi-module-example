@@ -1,8 +1,0 @@
-spring:
-  cache:
-    type: simple  # Use simple cache for testing without Redis
-      
-logging:
-  level:
-    root: WARN
-    com.example.common.cache: INFO

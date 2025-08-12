@@ -12,6 +12,9 @@ dependencies {
     // Batch processing
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     
+    // Web support for batch monitoring APIs
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    
     // Advanced scheduling
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     
