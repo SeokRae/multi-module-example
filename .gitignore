@@ -13,10 +13,8 @@ gradle-app.setting
 *.iml
 *.ipr
 out/
-!.idea/codeStyles/
-!.idea/runConfigurations/
-!.idea/dictionaries/
-!.idea/copyright/
+*.iml
+.idea_modules/
 
 # Logs
 logs/
@@ -51,6 +49,11 @@ Thumbs.db
 # MCP Servers (external repository)
 mcp-servers/
 
+# MCP Configuration files
+mcp-config.json
+claude-desktop-config.json
+mcp-test.sh
+
 # Python virtual environments (if any)
 .venv/
 __pycache__/
@@ -61,3 +64,12 @@ __pycache__/
 *.bak
 *.swp
 *~.nib
+
+# Development/Test files
+SONARCLOUD_*.md
+*-DEPRECATED-*.md
+01-README.md
+
+# Claude Code settings
+.claude/settings.local.json
+.dependabot-analysis/
