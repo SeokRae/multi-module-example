@@ -33,32 +33,32 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle with enhanced caching
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache-disabled: false
+          cache-read-only: false
+          cache-write-only: false
+          gradle-home-cache-cleanup: true
+          add-job-summary: false
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          key: ${{ runner.os }}-sonar-${{ hashFiles('**/build.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-sonar-
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and analyze with SonarQube
+      - name: Build and analyze with SonarQube (optimized)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # SonarQube 분석을 일시적으로 비활성화하고 빌드만 실행
+          # SonarQube 분석을 일시적으로 비활성화하고 최적화된 빌드만 실행
           echo "⚠️ SonarQube analysis temporarily disabled due to project configuration issues"
-          echo "🔨 Running build only..."
-          ./gradlew build --info
+          echo "🚀 Running optimized build only..."
+          ./gradlew build --info --parallel --build-cache
