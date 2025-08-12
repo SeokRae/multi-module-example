@@ -22,10 +22,13 @@ jobs:
     steps:
       - name: Check if Auto PR
         id: check
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if [[ "${{ github.event.pull_request.title }}" == *"🤖"* ]] || \
-             [[ "${{ github.event.pull_request.body }}" == *"Claude Code"* ]] || \
-             [[ "${{ github.event.pull_request.body }}" == *"Generated with"* ]]; then
+          if [[ "$PR_TITLE" == *"🤖"* ]] || \
+             [[ "$PR_BODY" == *"Claude Code"* ]] || \
+             [[ "$PR_BODY" == *"Generated with"* ]]; then
             echo "is_auto=true" >> $GITHUB_OUTPUT
             echo "✅ Detected Claude Code auto-generated PR"
           else

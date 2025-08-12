@@ -11,6 +11,8 @@ import com.example.user.domain.User;
 import com.example.user.domain.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,6 +28,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
     
+    @Cacheable(value = "users", key = "'auth:' + #loginRequest.email", unless = "#result == null")
     public AuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

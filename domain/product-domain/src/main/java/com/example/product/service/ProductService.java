@@ -5,6 +5,9 @@ import com.example.product.domain.ProductStatus;
 import com.example.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public Product createProduct(@Valid @NotNull Product product) {
         log.info("Creating new product: {}", product.getName());
         
@@ -55,6 +59,10 @@ public class ProductService {
     }
     
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "products", key = "#id"),
+        @CacheEvict(value = "products", allEntries = true)
+    })
     public Product updateProduct(@NotNull Long id, @Valid @NotNull Product product) {
         log.info("Updating product with ID: {}", id);
         
@@ -85,11 +93,13 @@ public class ProductService {
         return saved;
     }
     
+    @Cacheable(value = "products", key = "#id")
     public Product findById(@NotNull Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
     }
     
+    @Cacheable(value = "products", key = "'sku:' + #sku")
     public Optional<Product> findBySku(@NotNull String sku) {
         return productRepository.findBySku(sku);
     }
@@ -121,11 +131,13 @@ public class ProductService {
         return productRepository.findLowStockProducts(threshold != null ? threshold : 10);
     }
     
+    @Cacheable(value = "products", key = "'popular:' + #limit")
     public List<Product> findPopularProducts(int limit) {
         return productRepository.findPopularProducts(limit);
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void increaseViewCount(@NotNull Long id) {
         Product product = findById(id);
         product.increaseViewCount();
@@ -134,6 +146,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void updateStock(@NotNull Long id, @NotNull Integer quantity) {
         log.info("Updating stock for product ID: {} by quantity: {}", id, quantity);
         Product product = findById(id);
@@ -142,6 +155,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void decreaseStock(@NotNull Long id, @NotNull Integer quantity) {
         log.info("Decreasing stock for product ID: {} by quantity: {}", id, quantity);
         Product product = findById(id);
@@ -150,6 +164,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void activateProduct(@NotNull Long id) {
         log.info("Activating product with ID: {}", id);
         Product product = findById(id);
@@ -158,6 +173,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void deactivateProduct(@NotNull Long id) {
         log.info("Deactivating product with ID: {}", id);
         Product product = findById(id);
@@ -166,6 +182,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void discontinueProduct(@NotNull Long id) {
         log.info("Discontinuing product with ID: {}", id);
         Product product = findById(id);
@@ -174,6 +191,7 @@ public class ProductService {
     }
     
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(@NotNull Long id) {
         log.info("Deleting product with ID: {}", id);
         if (!productRepository.existsById(id)) {
