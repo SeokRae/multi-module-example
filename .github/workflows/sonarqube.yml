@@ -22,7 +22,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Sonar 분석을 위한 전체 히스토리
           fetch-depth: 0

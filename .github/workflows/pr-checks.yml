@@ -75,7 +75,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
@@ -154,7 +154,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
@@ -188,7 +188,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
@@ -219,7 +219,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # 전체 히스토리 가져오기 (diff를 위해 필요)
 
