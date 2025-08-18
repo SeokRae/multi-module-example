@@ -47,7 +47,7 @@ subprojects {
             dependency 'org.springframework.boot:spring-boot-starter-data-redis:3.5.4'
             dependency 'org.redisson:redisson-spring-boot-starter:3.50.0'
             dependency 'com.bucket4j:bucket4j-core:8.0.1'
-            dependency 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+            dependency 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
             dependency 'com.opencsv:opencsv:5.12.0'
             dependency 'org.apache.poi:poi-ooxml:5.4.1'
         }
